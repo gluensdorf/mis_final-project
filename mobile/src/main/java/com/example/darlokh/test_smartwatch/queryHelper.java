@@ -2,6 +2,7 @@ package com.example.darlokh.test_smartwatch;
 
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,12 +18,14 @@ import retrofit2.Response;
 
 import static junit.framework.Assert.fail;
 
-public class postQuery extends MainActivity{
+public class queryHelper extends MainActivity {
     final String TAG = "TOASTBROT";
+    public List<Element> elementsList;
     public View.OnClickListener handleClick = (new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            new Thread(new Runnable() {
+
+            Thread foo = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -38,10 +41,10 @@ public class postQuery extends MainActivity{
                         Response<OverpassResponse> response = streamsResponseCall.execute();
                         if(response.isSuccessful()){
                             OverpassResponse overpassResponse = response.body();
-                            List<Element> elements = overpassResponse.elements;
+                            elementsList = overpassResponse.elements;
                             Log.d(TAG, "run: response.isSuccessful");
-                            for(int i = 0; i < elements.size(); i++){
-                                Log.d(TAG, "elements: " + elements.get(i));
+                            for(int i = 0; i < elementsList.size(); i++){
+                                Log.d(TAG, "elements: " + elementsList.get(i));
                             }
                         } else {
                             fail("Query failed.");
@@ -49,8 +52,13 @@ public class postQuery extends MainActivity{
                         e.printStackTrace();
                     }
                 }
-            }).start();
+            });
+            foo.start();
         }
     });
+
+    public List<Element> getElementsList(){
+        return elementsList;
+    }
 
 }
