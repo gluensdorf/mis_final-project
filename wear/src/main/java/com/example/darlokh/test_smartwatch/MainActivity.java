@@ -1,11 +1,16 @@
 package com.example.darlokh.test_smartwatch;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 
@@ -17,9 +22,12 @@ import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
-public class MainActivity extends WearableActivity implements SensorEventListener, DataClient.OnDataChangedListener {
+public class MainActivity extends WearableActivity implements SensorEventListener {
 
     public SensorManager mSensorManager;
     public Sensor mGravitySensor;
@@ -35,6 +43,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private MyView circleMyView;//= new MyView(this.getApplicationContext());
 
     private static final String jsonLandmarkData = "/landmarkData";
+    private JSONArray jsonArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +58,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mGravitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
+        dataBroadcastReceiver dataReceiver = new dataBroadcastReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, messageFilter);
     }
 
     @Override
@@ -59,7 +72,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         mSensorManager.registerListener(this, mGravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 
-        Wearable.getDataClient(this).addListener(this);
+//        Wearable.getDataClient(this).addListener(this);
     }
 
 
@@ -68,7 +81,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onPause();
         Log.d("onPause", "onPause: onPause");
         mSensorManager.unregisterListener(this);
-        Wearable.getDataClient(this).removeListener(this);
+//        Wearable.getDataClient(this).removeListener(this);
     }
 
     @Override
@@ -113,20 +126,45 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         Log.d("STOP", "onStop: STOP");
     }
 
-    @Override
-    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
-      for (DataEvent event : dataEventBuffer) {
-          if (event.getType() == DataEvent.TYPE_CHANGED) {
-              DataItem item = event.getDataItem();
-              if (item.getUri().getPath().compareTo("/landmarksData") == 0) {
-                  DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-//                  loadLandmarksData();
-              }
-          } else if (event.getType() == DataEvent.TYPE_DELETED) {
-              //DataItem deleted
-          }
-      }
+//    @Override
+//    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
+//      for (DataEvent event : dataEventBuffer) {
+//          if (event.getType() == DataEvent.TYPE_CHANGED) {
+//              DataItem item = event.getDataItem();
+//              if (item.getUri().getPath().compareTo("/landmarksData") == 0) {
+//                  DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+////                  loadLandmarksData();
+//              }
+//          } else if (event.getType() == DataEvent.TYPE_DELETED) {
+//              //DataItem deleted
+//          }
+//      }
+//    }
+
+    public class dataBroadcastReceiver extends BroadcastReceiver {
+
+        public String landmarkData;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            landmarkData = intent.getStringExtra("data");
+            Log.d("log", "onReceive: something" + landmarkData);
+            doSomething(landmarkData);
+        }
     }
+
+    private void doSomething(String data) {
+        try {
+            JSONObject jsonObject = new JSONObject(data);
+//            jsonArray = jsonObject.getJSONArray("locations");
+            System.out.println(jsonObject.toString());
+//            System.out.println(jsonObject.get(2).toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 //    private void loadLandmarksData(){
 //        //iterate over string to split them
