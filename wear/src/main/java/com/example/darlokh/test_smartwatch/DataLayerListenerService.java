@@ -13,6 +13,8 @@ import com.google.android.gms.wearable.WearableListenerService;
 import java.util.List;
 
 public class DataLayerListenerService extends WearableListenerService {
+    public static String data;
+
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
         super.onDataChanged(dataEvents);
@@ -25,6 +27,7 @@ public class DataLayerListenerService extends WearableListenerService {
                 final DataMap map = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                 // read your values from map:
                 String stringExample = map.getString("com.example.key.landmarkdata");
+                data = stringExample;
                 System.out.println(stringExample);
             }
         }

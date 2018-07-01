@@ -19,7 +19,7 @@ import com.google.android.gms.wearable.Wearable;
 
 import java.util.ArrayList;
 
-public class MainActivity extends WearableActivity implements SensorEventListener, DataClient.OnDataChangedListener {
+public class MainActivity extends WearableActivity implements SensorEventListener { //, DataClient.OnDataChangedListener
 
     public SensorManager mSensorManager;
     public Sensor mGravitySensor;
@@ -35,6 +35,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private MyView circleMyView;//= new MyView(this.getApplicationContext());
 
     private static final String jsonLandmarkData = "/landmarkData";
+
+    public void foobarbar(String foobarString) {
+        System.out.println(foobarString);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +63,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         mSensorManager.registerListener(this, mGravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 
-        Wearable.getDataClient(this).addListener(this);
+//        Wearable.getDataClient(this).addListener(this);
     }
 
 
@@ -68,7 +72,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onPause();
         Log.d("onPause", "onPause: onPause");
         mSensorManager.unregisterListener(this);
-        Wearable.getDataClient(this).removeListener(this);
+//        Wearable.getDataClient(this).removeListener(this);
     }
 
     @Override
@@ -113,20 +117,20 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         Log.d("STOP", "onStop: STOP");
     }
 
-    @Override
-    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
-      for (DataEvent event : dataEventBuffer) {
-          if (event.getType() == DataEvent.TYPE_CHANGED) {
-              DataItem item = event.getDataItem();
-              if (item.getUri().getPath().compareTo("/landmarksData") == 0) {
-                  DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-//                  loadLandmarksData();
-              }
-          } else if (event.getType() == DataEvent.TYPE_DELETED) {
-              //DataItem deleted
-          }
-      }
-    }
+//    @Override
+//    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
+//      for (DataEvent event : dataEventBuffer) {
+//          if (event.getType() == DataEvent.TYPE_CHANGED) {
+//              DataItem item = event.getDataItem();
+//              if (item.getUri().getPath().compareTo("/landmarksData") == 0) {
+//                  DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+////                  loadLandmarksData();
+//              }
+//          } else if (event.getType() == DataEvent.TYPE_DELETED) {
+//              //DataItem deleted
+//          }
+//      }
+//    }
 
 //    private void loadLandmarksData(){
 //        //iterate over string to split them

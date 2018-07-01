@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             String tag = String.format("FOOBAR: %s", jsonArray.getJSONObject(1).get("lat").toString());
             Toast.makeText(this.getApplicationContext(), tag, Toast.LENGTH_SHORT).show();
-            putLandmarkData(jsonArray.toString());
+            putLandmarkData(jsonObject.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
