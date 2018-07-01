@@ -35,15 +35,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private MyView circleMyView;//= new MyView(this.getApplicationContext());
 
     private static final String jsonLandmarkData = "/landmarkData";
-
-    public void foobarbar(String foobarString) {
-        System.out.println(foobarString);
-    }
+    public static String landmarkData = "30";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         DataLayerListenerService foobar = new DataLayerListenerService();
+
 
 
         circleMyView = new MyView(this.getApplicationContext());
@@ -65,6 +63,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
 //        Wearable.getDataClient(this).addListener(this);
     }
+
 
 
     @Override

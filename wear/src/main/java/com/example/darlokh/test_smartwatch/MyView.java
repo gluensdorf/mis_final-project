@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.View;
 
+import static com.example.darlokh.test_smartwatch.MainActivity.landmarkData;
+
 public class MyView extends View
 {
     Paint paint = new Paint();
@@ -20,7 +22,7 @@ public class MyView extends View
 //        canvas = new Canvas();
         x = 50;
         y = 100;
-        rad = 20;
+        rad = 30;
 
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);
@@ -32,12 +34,17 @@ public class MyView extends View
     @Override
     protected void onDraw(Canvas blaCanvas) {
         super.onDraw(blaCanvas);
+        drawLandmarks();
+        rad = Integer.parseInt(MainActivity.landmarkData);
+
         canvas = blaCanvas;
         canvas.rotate(turnDegrees, this.getWidth()/2, this.getHeight()/2);
         canvas.drawCircle(x, y, rad, paint);
         invalidate();
     }
 
+    void drawLandmarks(){
+    }
 
     void setDegrees(float newDegrees) {
 //        canvas.rotate(newDegrees);

@@ -12,6 +12,8 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 import java.util.List;
 
+// https://stackoverflow.com/questions/24894711/android-wear-watchface-settings-on-host/24896043#24896043
+
 public class DataLayerListenerService extends WearableListenerService {
     public static String data;
 
@@ -27,7 +29,7 @@ public class DataLayerListenerService extends WearableListenerService {
                 final DataMap map = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                 // read your values from map:
                 String stringExample = map.getString("com.example.key.landmarkdata");
-                data = stringExample;
+                MainActivity.landmarkData = "50";
                 System.out.println(stringExample);
             }
         }
