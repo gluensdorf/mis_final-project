@@ -8,6 +8,7 @@
 /build
 /captures
 .externalNativeBuild
+/mobile/src/main/res/values/secrets.xml
 # Built application files
 *.apk
 *.ap_
