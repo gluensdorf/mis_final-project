@@ -1,21 +1,25 @@
 package com.example.darlokh.test_smartwatch;
 
-
-import android.content.Context;
-import android.graphics.Canvas;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
-import android.widget.TextView;
 
-import java.util.EventListener;
-import java.util.List;
+import com.google.android.gms.wearable.DataClient;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
 
-public class MainActivity extends WearableActivity implements SensorEventListener {
+import java.util.ArrayList;
+
+public class MainActivity extends WearableActivity implements SensorEventListener, DataClient.OnDataChangedListener {
 
     public SensorManager mSensorManager;
     public Sensor mGravitySensor;
@@ -30,6 +34,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private MyView circleMyView;//= new MyView(this.getApplicationContext());
 
+    private static final String jsonLandmarkData = "/landmarkData";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +47,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mGravitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
     }
 
     @Override
@@ -51,6 +56,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, mGravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+
+        Wearable.getDataClient(this).addListener(this);
     }
 
 
@@ -59,6 +66,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onPause();
         Log.d("onPause", "onPause: onPause");
         mSensorManager.unregisterListener(this);
+        Wearable.getDataClient(this).removeListener(this);
     }
 
     @Override
@@ -102,4 +110,45 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onStop();
         Log.d("STOP", "onStop: STOP");
     }
+
+    @Override
+    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
+      for (DataEvent event : dataEventBuffer) {
+          if (event.getType() == DataEvent.TYPE_CHANGED) {
+              DataItem item = event.getDataItem();
+              if (item.getUri().getPath().compareTo("/landmarksData") == 0) {
+                  DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+//                  loadLandmarksData();
+              }
+          } else if (event.getType() == DataEvent.TYPE_DELETED) {
+              //DataItem deleted
+          }
+      }
+    }
+
+//    private void loadLandmarksData(){
+//        //iterate over string to split them
+//        for(){
+//            String[] tagLatLngString = ....getValue().toString().split(", ");
+//            if (tagLatLngString.length == 2 || tagLatLngString == 3) {
+//                String tag = tagLatLngString[0];
+//                Double lat = Double.parseDouble(tagLatLngString[1]);
+//                Double lng = Double.parseDouble(tagLatLngString[2]);
+//
+//                MyView.drawCircle(lat, lng);
+//            } else {
+//                ArrayList<Landmark> landmarksArray = new ArrayList<>();
+//                for (int i = 0; i < tagLatLngString.length; i = i+3) {
+//                    String tag = tagLatLngString[i+0];
+//                    Double lat = Double.parseDouble(tagLatLngString[i+1]);
+//                    Double lng = Double.parseDouble(tagLatLngString[i+2]);
+//
+//                    MyView.drawCircle(lat, lng);
+//                }
+//            }
+//        }
+//    }
+
 }
+
+
