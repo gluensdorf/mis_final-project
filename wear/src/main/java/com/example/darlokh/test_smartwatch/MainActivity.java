@@ -33,6 +33,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DataLayerListenerService foobar = new DataLayerListenerService();
+
 
         circleMyView = new MyView(this.getApplicationContext());
         setContentView(circleMyView);
@@ -91,7 +93,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             SensorManager.getOrientation(R, orientation);
 
             mAzimuth = (int) (Math.toDegrees( SensorManager.getOrientation( R, orientation) [0]) + 360) %360;
-            Log.d("data", "sensorAction: AZi" + " " + mAzimuth);
+//            Log.d("data", "sensorAction: AZi" + " " + mAzimuth);
 
             circleMyView.setDegrees(mAzimuth);
         }

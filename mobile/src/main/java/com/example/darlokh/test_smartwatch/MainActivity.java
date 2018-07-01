@@ -5,15 +5,27 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.wearable.DataClient;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
 import android.util.Log;
@@ -47,6 +59,47 @@ public class MainActivity extends AppCompatActivity {
     private JSONArray jsonArray = new JSONArray();
     private JSONObject jsonObject = new JSONObject();
     private IntentFilter filter;
+    private static final String LANDMARKDATA_KEY = "com.example.key.landmarkdata";
+    private DataClient mDataClient;
+    private GoogleApiClient mGoogleApiClient;
+
+    private void initLandmarkData() {
+        String initLandmark = "";
+        putLandmarkData(initLandmark);
+    }
+
+    private void putLandmarkData(String jsonLandmarkData) {
+        if(mGoogleApiClient == null)
+            return;
+        final PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/landmarkData");
+        final DataMap map = putDataMapReq.getDataMap();
+        map.putString(LANDMARKDATA_KEY, jsonLandmarkData);
+        Wearable.DataApi.putDataItem(mGoogleApiClient, putDataMapReq.asPutDataRequest());
+    }
+
+    private void connectToWearable() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(@Nullable Bundle bundle) {
+                        System.out.println("FOOOOOBAR");
+                    }
+
+                    @Override
+                    public void onConnectionSuspended(int i) {
+
+                    }
+                })
+                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+                    }
+                })
+                .addApi(Wearable.API)
+                .build();
+        mGoogleApiClient.connect();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
         filter.addCategory(Intent.CATEGORY_DEFAULT);
         receiver = new ResponseReceiver();
         registerReceiver(receiver, filter);
+
+        connectToWearable();
+        initLandmarkData();
 
 //        final Intent intentQueryService = new Intent(this, queryService.class);
         mPermissionHelper.checkPermission(thisActivity);
@@ -128,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             String tag = String.format("FOOBAR: %s", jsonArray.getJSONObject(1).get("lat").toString());
             Toast.makeText(this.getApplicationContext(), tag, Toast.LENGTH_SHORT).show();
+            putLandmarkData(jsonArray.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
