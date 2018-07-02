@@ -44,6 +44,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private static final String jsonLandmarkData = "/landmarkData";
     private JSONArray jsonArray;
+    public JSONObject jsonObject;
     private String tagLatLngString;
 
     @Override
@@ -143,9 +144,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void doSomething(String data) {
         try {
-            JSONObject jsonObject = new JSONObject(data);
+            jsonObject = new JSONObject(data);
+           String jsonID = jsonObject.get("id").toString();
 //            jsonArray = jsonObject.getJSONArray("locations");
-            System.out.println(jsonObject.toString());
+//            System.out.println(jsonObject.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -155,6 +157,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void loadLandmarksData(String landmarkData){
         //iterate over string to split them
+
         for(int i = 0; i < landmarkData.length(); i++){
             String [] tagLatLngString = landmarkData.toString().split(", "); //what is the seperation symbol
             //should we trim the date to remove leerzeichen?
