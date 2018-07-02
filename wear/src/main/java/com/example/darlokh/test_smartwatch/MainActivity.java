@@ -1,11 +1,16 @@
 package com.example.darlokh.test_smartwatch;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 
@@ -17,9 +22,12 @@ import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
-public class MainActivity extends WearableActivity implements SensorEventListener { //, DataClient.OnDataChangedListener
+public class MainActivity extends WearableActivity implements SensorEventListener {
 
     public SensorManager mSensorManager;
     public Sensor mGravitySensor;
@@ -36,6 +44,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private static final String jsonLandmarkData = "/landmarkData";
     public static String landmarkData = "30";
+    private JSONArray jsonArray;
+    public JSONObject jsonObject;
+    private String tagLatLngString;
+    private String idLandmarks;
+    private String latLandmarks;
+    private String lngLandmarks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +65,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mGravitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
+//        dataBroadcastReceiver dataReceiver = new dataBroadcastReceiver();
+//        LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, messageFilter);
     }
 
     @Override
@@ -104,7 +122,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             SensorManager.getOrientation(R, orientation);
 
             mAzimuth = (int) (Math.toDegrees( SensorManager.getOrientation( R, orientation) [0]) + 360) %360;
-//            Log.d("data", "sensorAction: AZi" + " " + mAzimuth);
 
             circleMyView.setDegrees(mAzimuth);
         }
@@ -116,43 +133,43 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         Log.d("STOP", "onStop: STOP");
     }
 
-//    @Override
-//    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
-//      for (DataEvent event : dataEventBuffer) {
-//          if (event.getType() == DataEvent.TYPE_CHANGED) {
-//              DataItem item = event.getDataItem();
-//              if (item.getUri().getPath().compareTo("/landmarksData") == 0) {
-//                  DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-////                  loadLandmarksData();
-//              }
-//          } else if (event.getType() == DataEvent.TYPE_DELETED) {
-//              //DataItem deleted
-//          }
-//      }
-//    }
+    public class dataBroadcastReceiver extends BroadcastReceiver {
 
-//    private void loadLandmarksData(){
-//        //iterate over string to split them
-//        for(){
-//            String[] tagLatLngString = ....getValue().toString().split(", ");
-//            if (tagLatLngString.length == 2 || tagLatLngString == 3) {
-//                String tag = tagLatLngString[0];
-//                Double lat = Double.parseDouble(tagLatLngString[1]);
-//                Double lng = Double.parseDouble(tagLatLngString[2]);
-//
-//                MyView.drawCircle(lat, lng);
-//            } else {
-//                ArrayList<Landmark> landmarksArray = new ArrayList<>();
-//                for (int i = 0; i < tagLatLngString.length; i = i+3) {
-//                    String tag = tagLatLngString[i+0];
-//                    Double lat = Double.parseDouble(tagLatLngString[i+1]);
-//                    Double lng = Double.parseDouble(tagLatLngString[i+2]);
-//
-//                    MyView.drawCircle(lat, lng);
-//                }
-//            }
-//        }
-//    }
+        public String landmarkData;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            landmarkData = intent.getStringExtra("data");
+            Log.d("log", "onReceive: something" + landmarkData);
+            doSomething(landmarkData);
+            loadLandmarksData();
+
+        }
+    }
+
+    private void doSomething(String data) {
+        try {
+            jsonObject = new JSONObject(data);
+            //get first element, find tag, x and y, make them into tagString
+            idLandmarks = jsonObject.get("tags").toString();
+            latLandmarks = jsonObject.get("x").toString();
+            lngLandmarks = jsonObject.get("y").toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadLandmarksData(){
+        //iterate over string to split them
+        for(int i = 0; i < idLandmarks.length(); i++){
+           String [] tagLatLngString = landmarkData.toString().split(", "); //what is the seperation symbol
+            // should we trim the date to remove leerzeichen?
+            String tag = tagLatLngString[0];
+            Double lat = Double.parseDouble(tagLatLngString[1]);
+            Double lng = Double.parseDouble(tagLatLngString[2]);
+            //                MyView.drawCircle(lat, lng);
+        }
+    }
 
 }
 
