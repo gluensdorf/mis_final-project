@@ -5,6 +5,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -40,10 +43,11 @@ import java.util.List;
 
 import info.metadude.java.library.overpass.models.Element;
 
-/*TODO:
-1. get own location to request landmarks in a radius form it
+/*
+TODO:
+DONE 1. get own location to request landmarks in a radius form it
 2. transform latitude and longitudes to some sort of x-y-coordinates such that canvas can draw them
-3.
+3. write function that places the TARGETLOCATION on the border if it is not inside the visible/shown area (on the smartwatch)
 */
 
 public class MainActivity extends AppCompatActivity {
@@ -62,6 +66,92 @@ public class MainActivity extends AppCompatActivity {
     private static final String LANDMARKDATA_KEY = "com.example.key.landmarkdata";
     private DataClient mDataClient;
     private GoogleApiClient mGoogleApiClient;
+    private LatLngBounds targetLocation;
+    private double myCurrentLatitude = 0;
+    private double myCurrentLongitude = 0;
+    private LocationManager mLocationManager;
+    private static final long LOCATION_REFRESH_TIME =  5000;
+    private static final float LOCATION_REFRESH_DISTANCE = 5;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        final Activity thisActivity = this;
+        builder = new PlacePicker.IntentBuilder();
+        mPermissionHelper = new permissionHelper();
+        receiver = new ResponseReceiver();
+        filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        registerReceiver(receiver, filter);
+
+        mPermissionHelper.checkPermission(thisActivity);
+        mPermissionHelper.checkGooglePlayServices(getApplicationContext(), thisActivity);
+
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                LOCATION_REFRESH_TIME,
+                LOCATION_REFRESH_DISTANCE,
+                mLocationListener);
+
+        connectToWearable();
+        initLandmarkData();
+
+        setContentView(R.layout.activity_main);
+
+        final Button buttonFoo = findViewById(R.id.button);
+        final Button buttonBar = findViewById(R.id.button2);
+        final Button buttonFoobar = findViewById(R.id.button3);
+
+        final queryHelper mQueryHelper = new queryHelper();
+        buttonFoo.setOnClickListener(mQueryHelper.handleClick);
+
+        final Intent queryIntent = new Intent(this, queryService.class);
+        buttonFoobar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startService(queryIntent);
+            }
+        });
+
+        buttonBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getTargetLocation();
+            }
+
+        });
+
+    }
+
+    void popToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private final LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            myCurrentLatitude = location.getLatitude();
+            myCurrentLongitude = location.getLongitude();
+            String msg = Double.toString(myCurrentLatitude) + ' ' + Double.toString(myCurrentLongitude);
+            popToast(msg);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
 
     private void initLandmarkData() {
         String initLandmark = "";
@@ -101,50 +191,6 @@ public class MainActivity extends AppCompatActivity {
         mGoogleApiClient.connect();
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        final Activity thisActivity = this;
-        builder = new PlacePicker.IntentBuilder();
-        mPermissionHelper = new permissionHelper();
-        filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-        receiver = new ResponseReceiver();
-        registerReceiver(receiver, filter);
-
-        connectToWearable();
-        initLandmarkData();
-
-//        final Intent intentQueryService = new Intent(this, queryService.class);
-        mPermissionHelper.checkPermission(thisActivity);
-        mPermissionHelper.checkGooglePlayServices(getApplicationContext(), thisActivity);
-        setContentView(R.layout.activity_main);
-
-        final Button buttonFoo = findViewById(R.id.button);
-        final Button buttonBar = findViewById(R.id.button2);
-        final Button buttonFoobar = findViewById(R.id.button3);
-
-        final queryHelper mQueryHelper = new queryHelper();
-        buttonFoo.setOnClickListener(mQueryHelper.handleClick);
-
-        final Intent queryIntent = new Intent(this, queryService.class);
-        buttonFoobar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startService(queryIntent);
-            }
-        });
-
-        buttonBar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prepareData();
-            }
-
-        });
-
-    }
-
     public class ResponseReceiver extends BroadcastReceiver {
         public static final String ACTION_RESP =
                 "com.example.darlokh.test_smartwatch.intent.action.MESSAGE_PROCESSED";
@@ -170,7 +216,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        unregisterReceiver(receiver);
+        try {
+            unregisterReceiver(receiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         super.onPause();
     }
 
@@ -192,10 +242,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(receiver);
+        try {
+            unregisterReceiver(receiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         super.onDestroy();
     }
 
+    // save the targetLocation
     // blog entry about PlacePicker
     // https://medium.com/exploring-android/exploring-play-services-place-picker-autocomplete-150809f739fe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -203,8 +258,8 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Place place = PlacePicker.getPlace(this, data);
                 String toastMsg = String.format("Place: %s", place.getName());
-                LatLngBounds latlngPlace = PlacePicker.getLatLngBounds(data);
-                Log.d(TAG, "onActivityResult: " + latlngPlace);
+                targetLocation = PlacePicker.getLatLngBounds(data);
+                Log.d(TAG, "onActivityResult: " + targetLocation);
 //                String toastMsg2 = String.format("Place: %s", place.getName());
 
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
@@ -212,12 +267,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void prepareData(){
+    // let user select his target location -> 'onActivityResult' saves the selected location
+    private void getTargetLocation(){
         try {
             startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST);
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
             mPermissionHelper.checkGooglePlayServices(getApplicationContext(), thisActivity);
-            Log.d(TAG, "prepareData: FAILED");
+            Log.d(TAG, "getTargetLocation: FAILED");
         }
     }
 }
