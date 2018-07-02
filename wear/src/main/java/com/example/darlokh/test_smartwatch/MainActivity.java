@@ -44,6 +44,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private static final String jsonLandmarkData = "/landmarkData";
     private JSONArray jsonArray;
+    private String tagLatLngString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,20 +127,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         Log.d("STOP", "onStop: STOP");
     }
 
-//    @Override
-//    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
-//      for (DataEvent event : dataEventBuffer) {
-//          if (event.getType() == DataEvent.TYPE_CHANGED) {
-//              DataItem item = event.getDataItem();
-//              if (item.getUri().getPath().compareTo("/landmarksData") == 0) {
-//                  DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-////                  loadLandmarksData();
-//              }
-//          } else if (event.getType() == DataEvent.TYPE_DELETED) {
-//              //DataItem deleted
-//          }
-//      }
-//    }
 
     public class dataBroadcastReceiver extends BroadcastReceiver {
 
@@ -150,6 +137,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             landmarkData = intent.getStringExtra("data");
             Log.d("log", "onReceive: something" + landmarkData);
             doSomething(landmarkData);
+            loadLandmarksData(landmarkData);
         }
     }
 
@@ -158,7 +146,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             JSONObject jsonObject = new JSONObject(data);
 //            jsonArray = jsonObject.getJSONArray("locations");
             System.out.println(jsonObject.toString());
-//            System.out.println(jsonObject.get(2).toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -166,29 +153,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
 
 
-//    private void loadLandmarksData(){
-//        //iterate over string to split them
-//        for(){
-//            String[] tagLatLngString = ....getValue().toString().split(", ");
-//            if (tagLatLngString.length == 2 || tagLatLngString == 3) {
-//                String tag = tagLatLngString[0];
-//                Double lat = Double.parseDouble(tagLatLngString[1]);
-//                Double lng = Double.parseDouble(tagLatLngString[2]);
-//
+    private void loadLandmarksData(String landmarkData){
+        //iterate over string to split them
+        for(int i = 0; i < landmarkData.length(); i++){
+            String [] tagLatLngString = landmarkData.toString().split(", "); //what is the seperation symbol
+            //should we trim the date to remove leerzeichen?
+                String tag = tagLatLngString[0];
+                Double lat = Double.parseDouble(tagLatLngString[1]);
+                Double lng = Double.parseDouble(tagLatLngString[2]);
 //                MyView.drawCircle(lat, lng);
-//            } else {
-//                ArrayList<Landmark> landmarksArray = new ArrayList<>();
-//                for (int i = 0; i < tagLatLngString.length; i = i+3) {
-//                    String tag = tagLatLngString[i+0];
-//                    Double lat = Double.parseDouble(tagLatLngString[i+1]);
-//                    Double lng = Double.parseDouble(tagLatLngString[i+2]);
-//
-//                    MyView.drawCircle(lat, lng);
-//                }
-//            }
-//        }
-//    }
-
+        }
+    }
 }
 
 
