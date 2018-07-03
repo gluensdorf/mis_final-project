@@ -16,7 +16,7 @@ public class MyView extends View
     Paint natureMarks = new Paint();
     Paint electricityMarks = new Paint();
 
-    Canvas canvas;
+    Canvas canvas = new Canvas();
     public int x,y,rad, ls;
     public float turnDegrees;
 
@@ -25,7 +25,7 @@ public class MyView extends View
     public MyView(Context context)
     {
         super(context);
-        paint = new Paint();
+//        paint = new Paint();
 
 //        canvas = new Canvas();
         x = 50;
@@ -34,10 +34,10 @@ public class MyView extends View
         ls = 50;
 
         //for if we want the circles on the screens edge
-        float xF = (float)(ls * Math.cos(170 * Math.PI / 180F)) + getWidth()/2;
-        float yF = (float)(ls * Math.sin(170 * Math.PI / 180F)) + getHeight()/2;
-        float xF2 = (float)(ls * Math.cos(24 * Math.PI / 180F)) + getWidth()/2;
-        float yF2 = (float)(ls * Math.sin(24 * Math.PI / 180F)) + getHeight()/2;
+        xF = (float)(ls * Math.cos(170 * Math.PI / 180F)) + getWidth()/2;
+        yF = (float)(ls * Math.sin(170 * Math.PI / 180F)) + getHeight()/2;
+        xF2 = (float)(ls * Math.cos(24 * Math.PI / 180F)) + getWidth()/2;
+        yF2 = (float)(ls * Math.sin(24 * Math.PI / 180F)) + getHeight()/2;
 
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);

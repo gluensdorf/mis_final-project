@@ -56,9 +56,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onCreate(savedInstanceState);
         DataLayerListenerService foobar = new DataLayerListenerService();
 
-
-
-        circleMyView = new MyView(this.getApplicationContext());
+        circleMyView = new MyView(this);
         setContentView(circleMyView);
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);

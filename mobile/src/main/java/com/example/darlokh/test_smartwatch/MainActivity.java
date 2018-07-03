@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     private LocationManager mLocationManager;
     private static final long LOCATION_REFRESH_TIME =  5000;
     private static final float LOCATION_REFRESH_DISTANCE = 5;
+    private LandmarkContainer lmContainer = new LandmarkContainer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             myCurrentLatitude = location.getLatitude();
             myCurrentLongitude = location.getLongitude();
+            lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
             String msg = Double.toString(myCurrentLatitude) + ' ' + Double.toString(myCurrentLongitude);
             popToast(msg);
         }
@@ -172,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(@Nullable Bundle bundle) {
-                        System.out.println("FOOOOOBAR");
                     }
 
                     @Override
@@ -197,16 +198,13 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            json = intent.getStringExtra(queryService.PARAM_OUT_MSG);// getParcelableExtra(queryService.PARAM_OUT_MSG);
+            json = intent.getStringExtra(queryService.PARAM_OUT_MSG);
             Gson gson = new Gson();
             mElementList = gson.fromJson(json, List.class);
-            System.out.println("HELP");
+            System.out.println("OSM data received in mainActivity.");
             try {
                 jsonObject = new JSONObject("{locations:" + intent.getStringExtra(queryService.PARAM_OUT_MSG) + "}");
                 jsonArray = jsonObject.getJSONArray("locations");
-//                for (int i = 0; i < jsonArray.length(); i++) {
-//                    System.out.println(jsonArray.getJSONObject(i));
-//                }
             } catch (Exception e ){
                 e.printStackTrace();
             }
@@ -230,11 +228,29 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
     }
 
+    // do something with the data from OSM
     protected void foobar() {
+        lmContainer.clearLmArray();
         try {
-            String tag = String.format("FOOBAR: %s", jsonArray.getJSONObject(1).get("lat").toString());
-            Toast.makeText(this.getApplicationContext(), tag, Toast.LENGTH_SHORT).show();
-            putLandmarkData(jsonObject.toString());
+//            String tag = String.format("FOOBAR: %s", jsonArray.getJSONObject(1).get("lat").toString());
+//            Toast.makeText(this.getApplicationContext(), tag, Toast.LENGTH_SHORT).show();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                double lat = jsonArray.getJSONObject(i).getDouble("lat");
+                double lon = jsonArray.getJSONObject(i).getDouble("lon");
+                JSONObject jsonObjectTags = (JSONObject) jsonArray.getJSONObject(i).get("tags");
+                String tags = jsonObjectTags.getString("amenity");
+                Landmark tmpLm = new Landmark(lon, lat, tags);
+                lmContainer.addLandmark(tmpLm);
+                Log.d(TAG, "foobar: filling lmContainer with landmarks from OSM.");
+            }
+            lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
+            lmContainer.distanceLandmarksToMyLocation();
+            lmContainer.sortByDistance();
+            Log.d(TAG, "foobar: lmArr size: " + lmContainer.getLmArr().size());
+            for(int i = 0; i < lmContainer.getLmArr().size(); i++){
+                System.out.println(lmContainer.getLmArr().get(i).dist);
+            }
+            putLandmarkData(lmContainer.containerToJSONObject().toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -259,6 +275,10 @@ public class MainActivity extends AppCompatActivity {
                 Place place = PlacePicker.getPlace(this, data);
                 String toastMsg = String.format("Place: %s", place.getName());
                 targetLocation = PlacePicker.getLatLngBounds(data);
+                double lon = targetLocation.getCenter().longitude;
+                double lat = targetLocation.getCenter().latitude;
+                lmContainer.setTargetLocation(new Landmark(lon, lat, "myTarget"));
+
                 Log.d(TAG, "onActivityResult: " + targetLocation);
 //                String toastMsg2 = String.format("Place: %s", place.getName());
 

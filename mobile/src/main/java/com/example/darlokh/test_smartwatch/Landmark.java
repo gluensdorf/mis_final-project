@@ -1,15 +1,21 @@
 package com.example.darlokh.test_smartwatch;
 
-public class landmark {
-    public int x;
-    public int y;
+public class Landmark {
+    public double x;
+    public double y;
     public String tag;
+    public double dist;
 
-    void landmark(int newX, int newY, String newTag){
+    public Landmark(double newX, double newY, String newTag){
         x = newX;
         y = newY;
         tag = newTag;
     }
+
+    public void euclideanDist(Landmark otherLandmark){
+        dist = Math.sqrt(Math.pow(otherLandmark.x - x, 2) + Math.pow(otherLandmark.y - y, 2));
+    }
+
 //
 //    //get-Functions
 //    int getX(){return x;}
