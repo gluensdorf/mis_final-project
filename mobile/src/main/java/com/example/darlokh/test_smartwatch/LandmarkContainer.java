@@ -1,5 +1,9 @@
 package com.example.darlokh.test_smartwatch;
 
+import android.widget.Toast;
+
+import com.google.gson.JsonParseException;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -21,6 +25,9 @@ public class LandmarkContainer {
         for(int i=0; i < lmArr.size(); i++){
             lmArr.get(i).euclideanDist(myLocation);
         }
+        targetLocation.euclideanDist(myLocation);
+        myLocation.x = myLocation.x - myLocation.x;
+        myLocation.y = myLocation.y - myLocation.y;
     }
 
     public void clearLmArray(){
@@ -60,19 +67,22 @@ public class LandmarkContainer {
             tmp.put("x", targetLocation.x);
             tmp.put("y", targetLocation.y);
             tmp.put("tag", targetLocation.tag);
+            tmp.put("dist", targetLocation.dist);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return tmp;
     }
 
-    // JSONObject -> JSONArray -> multiple JSONObject
+    // builds a JSONObject such that myLocation is at index 0, targetLocation at index 1 and
+    // landmarks from OSM are added sorted by 'dist' (euclidean distance to myLocation)
     public JSONArray containerToJSONObject(){
         JSONObject tmpLocation = myLocationToJSONObject();
         JSONObject tmpTarget = myTargetToJSONObject();
         JSONArray tmpArr = new JSONArray();
         tmpArr.put(tmpLocation);
         tmpArr.put(tmpTarget);
+        sortByDistance();
 
         for(int i=0; i < lmArr.size(); i++){
             JSONObject tmp = new JSONObject();

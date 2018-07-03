@@ -12,8 +12,12 @@ public class Landmark {
         tag = newTag;
     }
 
+    //TODO: distance is still too large
     public void euclideanDist(Landmark otherLandmark){
         dist = Math.sqrt(Math.pow(otherLandmark.x - x, 2) + Math.pow(otherLandmark.y - y, 2));
+        x -= otherLandmark.x;
+        y -= otherLandmark.y;
+        System.out.println(x);
     }
 
 //

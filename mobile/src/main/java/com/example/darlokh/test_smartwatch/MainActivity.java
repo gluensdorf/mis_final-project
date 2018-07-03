@@ -234,6 +234,8 @@ public class MainActivity extends AppCompatActivity {
         try {
 //            String tag = String.format("FOOBAR: %s", jsonArray.getJSONObject(1).get("lat").toString());
 //            Toast.makeText(this.getApplicationContext(), tag, Toast.LENGTH_SHORT).show();
+            lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
+            lmContainer.distanceLandmarksToMyLocation();
             for (int i = 0; i < jsonArray.length(); i++) {
                 double lat = jsonArray.getJSONObject(i).getDouble("lat");
                 double lon = jsonArray.getJSONObject(i).getDouble("lon");
@@ -243,9 +245,7 @@ public class MainActivity extends AppCompatActivity {
                 lmContainer.addLandmark(tmpLm);
                 Log.d(TAG, "foobar: filling lmContainer with landmarks from OSM.");
             }
-            lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
-            lmContainer.distanceLandmarksToMyLocation();
-            lmContainer.sortByDistance();
+//            lmContainer.sortByDistance();
             Log.d(TAG, "foobar: lmArr size: " + lmContainer.getLmArr().size());
             for(int i = 0; i < lmContainer.getLmArr().size(); i++){
                 System.out.println(lmContainer.getLmArr().get(i).dist);

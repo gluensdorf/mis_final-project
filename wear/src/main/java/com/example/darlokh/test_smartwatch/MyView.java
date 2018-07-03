@@ -15,8 +15,8 @@ public class MyView extends View
     Paint towerPaint = new Paint();
     Paint natureMarks = new Paint();
     Paint electricityMarks = new Paint();
-
     Canvas canvas = new Canvas();
+
     public int x,y,rad, ls;
     public float turnDegrees;
 
@@ -25,9 +25,6 @@ public class MyView extends View
     public MyView(Context context)
     {
         super(context);
-//        paint = new Paint();
-
-//        canvas = new Canvas();
         x = 50;
         y = 100;
         rad = 30;
@@ -47,7 +44,6 @@ public class MyView extends View
         towerPaint.setColor(Color.parseColor("#823410"));
         natureMarks.setColor(Color.parseColor("#478210"));
         electricityMarks.setColor(Color.parseColor("#acabb2"));
-
     }
 
     @Override

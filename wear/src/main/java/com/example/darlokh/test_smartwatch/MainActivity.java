@@ -145,6 +145,19 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
+    // TODO: implementing the following pseudocode
+    // add new attribute landmarkList
+    // iterate over the JSONObject
+    // read landmark per landmark out
+    // add new landmark with their data to the landmarkList
+    // in myView iterate over landmarkList with a new function
+    // the new function reads the tag, decides which form the landmark will have by the name
+    // and uses the coordinates from the landmark in its form accordingly
+    // then it draws the landmark (this is done for every landmark)
+    //
+    // amount of landmarks which will be drawn can be adjusted because the landmarks
+    // are ordered by their distance to myLocation - the iteration can stop when the cap is reached
+    //
     private void doSomething(String data) {
         try {
             jsonObject = new JSONObject(data);
