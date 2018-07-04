@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        final Button buttonFoo = findViewById(R.id.button);
+//        final Button buttonFoo = findViewById(R.id.button);
         final Button buttonBar = findViewById(R.id.button2);
         final Button buttonFoobar = findViewById(R.id.button3);
 
