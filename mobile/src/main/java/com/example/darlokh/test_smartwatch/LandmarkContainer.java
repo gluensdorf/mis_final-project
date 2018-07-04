@@ -1,9 +1,5 @@
 package com.example.darlokh.test_smartwatch;
 
-import android.widget.Toast;
-
-import com.google.gson.JsonParseException;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,10 +20,11 @@ public class LandmarkContainer {
     public void distanceLandmarksToMyLocation(){
         for(int i=0; i < lmArr.size(); i++){
             lmArr.get(i).euclideanDist(myLocation);
+            System.out.println(lmArr.get(i).dist);
         }
         targetLocation.euclideanDist(myLocation);
-        myLocation.x = myLocation.x - myLocation.x;
-        myLocation.y = myLocation.y - myLocation.y;
+//        myLocation.x = myLocation.x - myLocation.x;
+//        myLocation.y = myLocation.y - myLocation.y;
     }
 
     public void clearLmArray(){
@@ -97,6 +94,72 @@ public class LandmarkContainer {
             }
         }
         return tmpArr;
+    }
+
+    public void JSONObjectToContainer(JSONObject obj){
+//        try {
+//            obj.getJSONArray()
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    public ArrayList<Double> getMinMaxCoords(){
+        double tmpMaxLat = -99999;
+        double tmpMinLat = 99999;
+        double tmpMaxLon = -99999;
+        double tmpMinLon = 99999;
+        for (int i=0; i<lmArr.size(); i++){
+            tmpMaxLon = Math.max(lmArr.get(i).x, tmpMaxLon);
+            tmpMinLon = Math.min(lmArr.get(i).x, tmpMinLon);
+            tmpMaxLat = Math.max(lmArr.get(i).y, tmpMaxLat);
+            tmpMinLat = Math.min(lmArr.get(i).y, tmpMinLat);
+//            lmArr.get(i).x = lmArr.get(i).x - myLocation.x;
+//            lmArr.get(i).y = lmArr.get(i).y - myLocation.y;
+        }
+        ArrayList<Double> result = new ArrayList<Double>();
+        result.add(tmpMaxLon);
+        result.add(tmpMinLon);
+        result.add(tmpMaxLat);
+        result.add(tmpMinLat);
+        result.add(Math.max(Math.abs(tmpMaxLon) - Math.abs(tmpMinLon),
+                Math.abs(tmpMaxLat) - Math.abs(tmpMinLat)));
+        return result;
+    }
+
+    public void setLandmarksIntoLocalCoords(){
+        for (int i=0; i<lmArr.size(); i++){
+            lmArr.get(i).x = lmArr.get(i).x - myLocation.x;
+            lmArr.get(i).y = lmArr.get(i).y - myLocation.y;
+        }
+        targetLocation.x -= myLocation.x;
+        targetLocation.y -= myLocation.y;
+        myLocation.x -= myLocation.x;
+        myLocation.y -= myLocation.y;
+    }
+
+    public void translateLatLonIntoXY(){
+        int radiusEarth = 6371;
+        for (int i=0; i<lmArr.size(); i++) {
+            lmArr.get(i).x = lmArr.get(i).x * radiusEarth * Math.cos(myLocation.x);
+            lmArr.get(i).y = lmArr.get(i).y * radiusEarth;
+        }
+        targetLocation.x = targetLocation.x * radiusEarth * Math.cos(myLocation.x);
+        targetLocation.y = targetLocation.y * radiusEarth;
+        myLocation.x = myLocation.x * radiusEarth * Math.cos(myLocation.x);
+        myLocation.y = myLocation.y * radiusEarth;
+
+    }
+
+    public void setCoordsIntoCanvasResolution(double factor){
+        for (int i=0; i<lmArr.size(); i++) {
+            lmArr.get(i).x = 160 + lmArr.get(i).x * (factor/320);
+            lmArr.get(i).y = 160 + lmArr.get(i).y * (factor/320);
+        }
+        targetLocation.x = 160 + targetLocation.x * (factor/320);
+        targetLocation.y = 160 + targetLocation.y * (factor/320);
+        myLocation.x = 160 + myLocation.x;
+        myLocation.y = 160 + myLocation.y;
     }
 
     public Landmark getMyLocation(){

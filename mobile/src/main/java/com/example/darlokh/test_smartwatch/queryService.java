@@ -23,7 +23,8 @@ public class queryService extends IntentService {
     public static List<Element> elementsList;
     public static final String PARAM_OUT_MSG = "omsg";
     public static String elementsListToString = "WOLOLOL ";
-
+    public static double myLat = 0;
+    public static double myLon = 0;
 
     public queryService(){
         super("queryService");
@@ -38,7 +39,7 @@ public class queryService extends IntentService {
                     put("amenity", "post_box");
                 }
             };
-            NodesQuery nodesQuery = new NodesQuery(600, 52.516667, 13.383333, tags, true, 13);
+            NodesQuery nodesQuery = new NodesQuery(600, myLat, myLon, tags, true, 13);
             Call<OverpassResponse> streamsResponseCall = streamsService.getOverpassResponse(
             nodesQuery.getFormattedDataQuery());
             Response<OverpassResponse> response = streamsResponseCall.execute();
@@ -50,6 +51,7 @@ public class queryService extends IntentService {
                 elementsList = overpassResponse.elements;
                 String json = gson.toJson(elementsList);
                 elementsListToString = json;
+                System.out.println(elementsListToString);
             } else {
                 fail("Query failed.");
             }

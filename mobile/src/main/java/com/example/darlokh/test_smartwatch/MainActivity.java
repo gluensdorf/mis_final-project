@@ -39,6 +39,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import info.metadude.java.library.overpass.models.Element;
@@ -67,8 +68,8 @@ public class MainActivity extends AppCompatActivity {
     private DataClient mDataClient;
     private GoogleApiClient mGoogleApiClient;
     private LatLngBounds targetLocation;
-    private double myCurrentLatitude = 0;
-    private double myCurrentLongitude = 0;
+    private static double myCurrentLatitude = 0;
+    private static double myCurrentLongitude = 0;
     private LocationManager mLocationManager;
     private static final long LOCATION_REFRESH_TIME =  5000;
     private static final float LOCATION_REFRESH_DISTANCE = 5;
@@ -103,17 +104,25 @@ public class MainActivity extends AppCompatActivity {
         final Button buttonBar = findViewById(R.id.button2);
         final Button buttonFoobar = findViewById(R.id.button3);
 
-        final queryHelper mQueryHelper = new queryHelper();
-        buttonFoo.setOnClickListener(mQueryHelper.handleClick);
+//        final queryHelper mQueryHelper = new queryHelper();
+//
+//        queryHelper.myLat = myCurrentLatitude;
+//        queryHelper.myLon = myCurrentLongitude;
+//        buttonFoo.setOnClickListener(mQueryHelper.handleClick);
 
         final Intent queryIntent = new Intent(this, queryService.class);
+        queryService.myLat = myCurrentLatitude;
+        queryService.myLon = myCurrentLongitude;
+
         buttonFoobar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                queryService.myLat = myCurrentLatitude;
+                queryService.myLon = myCurrentLongitude;
+
                 startService(queryIntent);
             }
         });
-
         buttonBar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -121,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
-
     }
 
     void popToast(String msg) {
@@ -133,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             myCurrentLatitude = location.getLatitude();
             myCurrentLongitude = location.getLongitude();
+
             lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
             String msg = Double.toString(myCurrentLatitude) + ' ' + Double.toString(myCurrentLongitude);
             popToast(msg);
@@ -202,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
             Gson gson = new Gson();
             mElementList = gson.fromJson(json, List.class);
             System.out.println("OSM data received in mainActivity.");
+            System.out.println(intent.getStringExtra(queryService.PARAM_OUT_MSG));
             try {
                 jsonObject = new JSONObject("{locations:" + intent.getStringExtra(queryService.PARAM_OUT_MSG) + "}");
                 jsonArray = jsonObject.getJSONArray("locations");
@@ -232,24 +242,29 @@ public class MainActivity extends AppCompatActivity {
     protected void foobar() {
         lmContainer.clearLmArray();
         try {
-//            String tag = String.format("FOOBAR: %s", jsonArray.getJSONObject(1).get("lat").toString());
-//            Toast.makeText(this.getApplicationContext(), tag, Toast.LENGTH_SHORT).show();
             lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
-            lmContainer.distanceLandmarksToMyLocation();
+//            lmContainer.translateLatLonIntoXY();
+            ArrayList<Double> minMaxRatioArr = lmContainer.getMinMaxCoords();
+            lmContainer.setLandmarksIntoLocalCoords();
+//            lmContainer.setCoordsIntoCanvasResolution(minMaxRatioArr.get(4));
+            System.out.println(jsonArray);
             for (int i = 0; i < jsonArray.length(); i++) {
-                double lat = jsonArray.getJSONObject(i).getDouble("lat");
                 double lon = jsonArray.getJSONObject(i).getDouble("lon");
+                double lat = jsonArray.getJSONObject(i).getDouble("lat");
                 JSONObject jsonObjectTags = (JSONObject) jsonArray.getJSONObject(i).get("tags");
                 String tags = jsonObjectTags.getString("amenity");
                 Landmark tmpLm = new Landmark(lon, lat, tags);
                 lmContainer.addLandmark(tmpLm);
                 Log.d(TAG, "foobar: filling lmContainer with landmarks from OSM.");
             }
+            lmContainer.distanceLandmarksToMyLocation();
+//            System.out.println(lmContainer.getMinMaxCoords());
 //            lmContainer.sortByDistance();
             Log.d(TAG, "foobar: lmArr size: " + lmContainer.getLmArr().size());
-            for(int i = 0; i < lmContainer.getLmArr().size(); i++){
-                System.out.println(lmContainer.getLmArr().get(i).dist);
-            }
+//            for(int i = 0; i < lmContainer.getLmArr().size(); i++){
+//                System.out.println(lmContainer.getLmArr().get(i).dist);
+//            }
+            System.out.println(lmContainer.containerToJSONObject().toString());
             putLandmarkData(lmContainer.containerToJSONObject().toString());
         } catch (Exception e) {
             e.printStackTrace();

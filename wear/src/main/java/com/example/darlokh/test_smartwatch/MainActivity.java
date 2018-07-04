@@ -51,6 +51,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private String latLandmarks;
     private String lngLandmarks;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

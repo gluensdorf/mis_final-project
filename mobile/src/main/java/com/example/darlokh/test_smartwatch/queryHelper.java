@@ -21,6 +21,9 @@ import static junit.framework.Assert.fail;
 public class queryHelper extends MainActivity {
     final String TAG = "TOASTBROT";
     public List<Element> elementsList;
+    public static double myLat = 0;
+    public static double myLon = 0;
+
     public View.OnClickListener handleClick = (new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -35,7 +38,7 @@ public class queryHelper extends MainActivity {
                                 put("amenity", "post_box");
                             }
                         };
-                        NodesQuery nodesQuery = new NodesQuery(600, 52.516667, 13.383333, tags, true, 13);
+                        NodesQuery nodesQuery = new NodesQuery(600, myLat, myLon, tags, true, 13);
                         Call<OverpassResponse> streamsResponseCall = streamsService.getOverpassResponse(
                                 nodesQuery.getFormattedDataQuery());
                         Response<OverpassResponse> response = streamsResponseCall.execute();
