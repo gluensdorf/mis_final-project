@@ -51,7 +51,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private String latLandmarks;
     private String lngLandmarks;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,9 +73,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
         Log.d("onResume", "onResume: onResume");
-        mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mGravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mGravitySensor, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
 
 //        Wearable.getDataClient(this).addListener(this);
     }
@@ -118,11 +117,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mMagneticRotationData);
         if (success) {
             float orientation[] = new float[3];
-            SensorManager.getOrientation(R, orientation);
+            //SensorManager.getOrientation(R, orientation);
 
-            mAzimuth = (int) (Math.toDegrees( SensorManager.getOrientation( R, orientation) [0]) + 360) %360;
+            mAzimuth = (int) (Math.toDegrees(SensorManager.getOrientation(R, orientation) [0]) + 360) % 360;
 
             circleMyView.setDegrees(mAzimuth);
+//            Log.d("Wear Log1", "sensorAction: " + Math.toDegrees(SensorManager.getOrientation(R, orientation) [0]));
+//            Log.d("Wear Log2", "sensorAction: " + mAzimuth);
         }
     }
 
