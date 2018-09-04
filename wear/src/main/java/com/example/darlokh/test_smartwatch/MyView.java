@@ -54,7 +54,8 @@ public class MyView extends View
 
         canvas = blaCanvas;
         canvas.rotate(turnDegrees, this.getWidth()/2, this.getHeight()/2);
-        canvas.drawCircle(x, y, rad, waterBodiesPaint);
+        canvas.drawCircle(getWidth()/2,30, rad, towerPaint);
+//        canvas.drawCircle(x, y, rad, waterBodiesPaint);
 
         invalidate();
     }
