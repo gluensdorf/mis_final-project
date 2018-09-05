@@ -3,9 +3,10 @@
     package="com.example.darlokh.test_smartwatch">
 
     <uses-feature android:name="android.hardware.type.watch" />
+    <uses-feature android:name="android.hardware.sensor.gyroscope" />
+    <uses-feature android:name="android.hardware.sensor.compass" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-feature android:name="android.hardware.sensor.gyroscope" />
 
     <application
         android:allowBackup="true"
