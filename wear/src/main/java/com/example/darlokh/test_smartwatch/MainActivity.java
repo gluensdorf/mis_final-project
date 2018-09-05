@@ -31,23 +31,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     String TAG = "Compass";
     private SensorManager mSensorManager;
-    private Sensor mGravitySensor;
     private Sensor mMagnetometer;
-    private Sensor mRotation;
-//    public Sensor mAccelerometer;
-//
-//    public float[] mAcceleration;
-//    public float[] mMagneticRotationData;
-//    private float azimutInDegrees;
 
-    private float[] mAccelerometerData = new float[3];
-    private float[] mMagnetometerData = new float[3];
-    private float[] R = new float[9];
-    private float[] I = new float[9];
-
-    private float azimuth;
-
-//    private int mAzimuth = 0;
+    private float[] orientation = new float[3];
+    private float[] rMat = new float[9];
+    private int mAzimuth = 0; //degree
 
     private MyView circleMyView;//= new MyView(this.getApplicationContext());
 
@@ -63,14 +51,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DataLayerListenerService foobar = new DataLayerListenerService();
+        DataLayerListenerService mDataLayerListener = new DataLayerListenerService();
 
         circleMyView = new MyView(this);
         setContentView(circleMyView);
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-//        mGravitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
         IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
 //        dataBroadcastReceiver dataReceiver = new dataBroadcastReceiver();
@@ -82,12 +69,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onResume();
         Log.d("onResume", "onResume: onResume");
 
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_UI);
-//        mSensorManager.registerListener(this, mGravitySensor,
-//                SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_UI);
-//        mSensorManager.registerListener(this, mRotation, SensorManager.SENSOR_DELAY_GAME);
-//        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mMagnetometer,
+                SensorManager.SENSOR_DELAY_NORMAL);
 
 //        Wearable.getDataClient(this).addListener(this);
     }
@@ -107,75 +90,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     //as little action as possible within this function
     public void onSensorChanged(SensorEvent event) {
-        final float alpha = 0.97f;
-        int sensorType = event.sensor.getType();
-        switch (sensorType) {
-            case Sensor.TYPE_ACCELEROMETER:
-                Log.d(TAG, "onSensorChanged: TYPE_ACCELEROMETER");
-                mAccelerometerData = event.values.clone();
-                break;
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                Log.d(TAG, "onSensorChanged: TYPE_MAGNETIC_FIELD");
-                mMagnetometerData = event.values.clone();
-            default:
-                return;
+        if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+            SensorManager.getRotationMatrixFromVector(rMat, event.values);
+            mAzimuth = (int) (Math.toDegrees(SensorManager.getOrientation(rMat, orientation)[0]) + 360) % 360;
+//            Log.d(TAG, "onSensorChanged: " + mAzimuth);
+            circleMyView.setDegrees(-mAzimuth);
+        } else {
+            return;
         }
-        Log.d(TAG, "onSensorChanged: " + event.sensor.getName());
-
-//        synchronized (this) {
-//            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-//                mGravity[0] = alpha * mGravity[0] + (1 - alpha) * event.values[0];
-//                mGravity[1] = alpha * mGravity[1] + (1 - alpha) * event.values[1];
-//                mGravity[2] = alpha * mGravity[2] + (1 - alpha) * event.values[2];
-////                Log.d(TAG, "onSensorChanged0: " + Float.toString(event.values[0]));
-////                Log.d(TAG, "onSensorChanged1: " + Float.toString(event.values[1]));
-////                Log.d(TAG, "onSensorChanged2: " + Float.toString(event.values[2]));
-//            }
-//            if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-////            if (mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
-////                mGeomagnetic = event.values;
-//                mGeomagnetic[0] = alpha * mGeomagnetic[0] + (1 - alpha) * event.values[0];
-//                mGeomagnetic[1] = alpha * mGeomagnetic[1] + (1 - alpha) * event.values[1];
-//                mGeomagnetic[2] = alpha * mGeomagnetic[2] + (1 - alpha) * event.values[2];
-////                Log.d(TAG, "onSensorChanged0: " + Float.toString(event.values[0]));
-////                Log.d(TAG, "onSensorChanged1: " + Float.toString(event.values[1]));
-////                Log.d(TAG, "onSensorChanged2: " + Float.toString(event.values[2]));
-//                // Log.e(TAG, Float.toString(event.values[0]));
-//                Log.d(TAG, "onSensorChanged: " + Math.toDegrees(mGeomagnetic[1]));
-//            }
-//
-//            boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
-////            Log.d(TAG, "onSensorChanged: " + success);
-//            if (success) {
-//                float orientation[] = new float[3];
-//                SensorManager.getOrientation(R, orientation);
-//                Log.d(TAG, "azimuth (rad): " + azimuth);
-//                azimuth = (float) Math.toDegrees(orientation[0]); // orientation
-//                azimuth = (azimuth + 0 + 360) % 360;
-//                circleMyView.setDegrees(azimuth);
-//            }
-//        }
     }
-
-//    public void sensorAction() {
-//        float R[] = new float[9];
-//        float I[] = new float[9];
-//
-//        boolean success = SensorManager.getRotationMatrix(R, I, mAcceleration, mMagneticRotationData);
-//
-//        if (success) {
-//            float orientation[] = new float[3];
-//            SensorManager.getOrientation(R, orientation);
-//            Log.d("azimuth ", "sensorAction: " + orientation[0]);
-////            Log.d("2", "sensorAction: " + orientation[1]);
-////            Log.d("3", "sensorAction: " + orientation[2]);
-//            mAzimuth = (int) (Math.toDegrees(orientation[0]) + 360) % 360;
-//
-//            circleMyView.setDegrees(mAzimuth);
-////            Log.d("Wear Log1", "sensorAction: " + Math.toDegrees(SensorManager.getOrientation(R, orientation) [0]));
-////            Log.d("Wear Log2", "sensorAction: " + mAzimuth);
-//        }
-//    }
 
     @Override
     protected void onStop() {
