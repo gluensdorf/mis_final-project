@@ -8,26 +8,32 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 
+import com.google.android.gms.common.data.FreezableUtils;
+import com.google.android.gms.wearable.CapabilityClient;
 import com.google.android.gms.wearable.DataClient;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.NodeClient;
 import com.google.android.gms.wearable.Wearable;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class MainActivity extends WearableActivity implements SensorEventListener {
+public class MainActivity extends WearableActivity implements SensorEventListener, DataClient.OnDataChangedListener {
 
     String TAG = "Compass";
     private SensorManager mSensorManager;
@@ -39,6 +45,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private MyView circleMyView;//= new MyView(this.getApplicationContext());
 
+    private static final String LANDMARKDATA_KEY = "com.example.key.landmarkdata";
     private static final String jsonLandmarkData = "/landmarkData";
     public static String landmarkData = "30";
     private JSONArray jsonArray;
@@ -47,11 +54,50 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private String idLandmarks;
     private String latLandmarks;
     private String lngLandmarks;
+    private DataLayerListenerService mDataLayerListener;
+
+    @Override
+    public void onDataChanged(DataEventBuffer dataEvents){
+        Log.d(TAG, "onDataChanged: ABCD");
+        final List<DataEvent> events = FreezableUtils.freezeIterable(dataEvents);
+        for(DataEvent event : events) {
+            final Uri uri = event.getDataItem().getUri();
+            final String path = uri!=null ? uri.getPath() : null;
+            Log.d(TAG, "onDataChanged: " + path);
+            if(jsonLandmarkData.equals(path)) {
+                final DataMap map = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
+                // read your values from map:
+                Log.d("DataLayerListener", "onDataChanged: " + "FOOBAR");
+                String stringExample = map.getString(LANDMARKDATA_KEY);
+//                MainActivity.landmarkData = "50";
+                System.out.println(stringExample);
+                doSomething(stringExample);
+
+//                Intent dataIntent = new Intent();
+//                dataIntent.setAction(Intent.ACTION_SEND);
+//                dataIntent.putExtra("data", stringExample);
+//                LocalBroadcastManager.getInstance(this).sendBroadcast(dataIntent);
+            }
+        }
+
+//        for (DataEvent event : dataEvents) {
+//            if (event.getType() == DataEvent.TYPE_CHANGED) {
+//                // DataItem changed
+//                DataItem item = event.getDataItem();
+//                if (item.getUri().getPath().compareTo(jsonLandmarkData) == 0) {
+//                    DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+//                    Log.d(TAG, "onDataChanged: " + dataMap.getString(jsonLandmarkData));
+//                }
+//            } else if (event.getType() == DataEvent.TYPE_DELETED){
+//                // DataItem deleted
+//            }
+//        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DataLayerListenerService mDataLayerListener = new DataLayerListenerService();
+//        mDataLayerListener = new DataLayerListenerService();
 
         circleMyView = new MyView(this);
         setContentView(circleMyView);
@@ -60,19 +106,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
         IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
-//        dataBroadcastReceiver dataReceiver = new dataBroadcastReceiver();
-//        LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, messageFilter);
+        DataBroadcastReceiver dataReceiver = new DataBroadcastReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, messageFilter);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("onResume", "onResume: onResume");
 
+
+
+        Log.d("onResume", "onResume: onResume");
         mSensorManager.registerListener(this, mMagnetometer,
                 SensorManager.SENSOR_DELAY_NORMAL);
+        Wearable.getDataClient(this).addListener(this);
 
-//        Wearable.getDataClient(this).addListener(this);
     }
 
     @Override
@@ -80,7 +128,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onPause();
         Log.d("onPause", "onPause: onPause");
         mSensorManager.unregisterListener(this);
-//        Wearable.getDataClient(this).removeListener(this);
+        Wearable.getDataClient(this).removeListener(this);
     }
 
     @Override
@@ -106,19 +154,20 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         Log.d("STOP", "onStop: STOP");
     }
 
-    public class dataBroadcastReceiver extends BroadcastReceiver {
-
-        public String landmarkData;
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            landmarkData = intent.getStringExtra("data");
-            Log.d("log", "onReceive: something" + landmarkData);
-            doSomething(landmarkData);
-            loadLandmarksData();
-
-        }
-    }
+//    public class DataBroadcastReceiver extends BroadcastReceiver {
+//
+//        public String landmarkData;
+//
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            Log.d(TAG, "onReceive: ");
+//            landmarkData = intent.getStringExtra("data");
+////            Log.d("log", "onReceive: something" + landmarkData);
+//            doSomething(landmarkData);
+//            loadLandmarksData();
+//
+//        }
+//    }
 
     // TODO: implementing the following pseudocode
     // add new attribute landmarkList
@@ -135,25 +184,43 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     //
     private void doSomething(String data) {
         try {
-            jsonObject = new JSONObject(data);
+            jsonArray = new JSONArray(data);
+            jsonObject = jsonArray.getJSONObject(0);
+//            jsonObject = new JSONObject(data);
+            Log.d(TAG, "doSomething: " + "WOLOLOLOLOLOLOLO");
             //get first element, find tag, x and y, make them into tagString
-            idLandmarks = jsonObject.get("tags").toString();
+            Log.d(TAG, "doSomething: JsonObject " + jsonObject);
+            idLandmarks = jsonObject.get("tag").toString();
             latLandmarks = jsonObject.get("x").toString();
             lngLandmarks = jsonObject.get("y").toString();
+            loadLandmarksData();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void loadLandmarksData(){
-        //iterate over string to split them
-        for(int i = 0; i < idLandmarks.length(); i++){
-           String [] tagLatLngString = landmarkData.toString().split(", "); //what is the seperation symbol
-            // should we trim the date to remove leerzeichen?
-            String tag = tagLatLngString[0];
-            Double lat = Double.parseDouble(tagLatLngString[1]);
-            Double lng = Double.parseDouble(tagLatLngString[2]);
-            //                MyView.drawCircle(lat, lng);
+        try {
+            Log.d(TAG, "loadLandmarksData: jsonArray length = " + jsonArray.length());
+            //iterate over string to split them
+            for (int i = 1; i < jsonArray.length(); i++) {
+//                String[] tagLatLngString = landmarkData.toString().split(", "); //what is the seperation symbol
+                // should we trim the date to remove leerzeichen?
+                try {
+                    jsonObject = jsonArray.getJSONObject(i);
+                    String tag = jsonObject.get("tag").toString();
+                    Double lat = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
+                    Double lng = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
+                    Log.d(TAG, "Tag: " + tag);
+                    Log.d(TAG, "x/lat: " + lat);
+                    Log.d(TAG, "y/lng: " + lng);
+                    //                MyView.drawCircle(lat, lng);
+                } catch (JSONException jsonEx) {
+                    jsonEx.printStackTrace();
+                }
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
     }
 

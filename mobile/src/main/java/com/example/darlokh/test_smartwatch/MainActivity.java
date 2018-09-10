@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         receiver = new ResponseReceiver();
         filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
         filter.addCategory(Intent.CATEGORY_DEFAULT);
+        mDataClient = Wearable.getDataClient(this);
         registerReceiver(receiver, filter);
 
         mPermissionHelper.checkPermission(thisActivity);
@@ -175,7 +176,11 @@ public class MainActivity extends AppCompatActivity {
         final PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/landmarkData");
         final DataMap map = putDataMapReq.getDataMap();
         map.putString(LANDMARKDATA_KEY, jsonLandmarkData);
-        Wearable.DataApi.putDataItem(mGoogleApiClient, putDataMapReq.asPutDataRequest());
+        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+        Task<DataItem> putDataItem = mDataClient.putDataItem(putDataReq);
+        Log.d(TAG, "putLandmarkData: FOOBAR");
+//        putDataItem.
+//        Wearable.DataApi.putDataItem(mGoogleApiClient, putDataMapReq.asPutDataRequest());
     }
 
     private void connectToWearable() {

@@ -3,6 +3,7 @@ package com.example.darlokh.test_smartwatch;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.data.FreezableUtils;
@@ -33,6 +34,7 @@ public class DataLayerListenerService extends WearableListenerService {
             if("/landmarkData".equals(path)) {
                 final DataMap map = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                 // read your values from map:
+                Log.d("DataLayerListener", "onDataChanged: " + "FOOBAR");
                 String stringExample = map.getString("com.example.key.landmarkdata");
                 MainActivity.landmarkData = "50";
                 System.out.println(stringExample);

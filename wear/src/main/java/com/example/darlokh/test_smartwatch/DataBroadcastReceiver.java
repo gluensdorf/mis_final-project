@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 
-public class dataBroadcastReceiver extends BroadcastReceiver {
+public class DataBroadcastReceiver extends BroadcastReceiver {
 
     public String landmarkData;
 

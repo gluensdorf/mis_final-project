@@ -3,6 +3,8 @@ package com.example.darlokh.test_smartwatch;
 import android.app.IntentService;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.util.Log;
+
 import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.List;
@@ -36,10 +38,11 @@ public class queryService extends IntentService {
             OverpassService streamsService = ApiModule.provideOverpassService();
             Map<String, String> tags = new HashMap<String, String>() {
                 {
-                    put("amenity", "post_box");
+                    put("amenity", "school");
                 }
             };
-            NodesQuery nodesQuery = new NodesQuery(600, myLat, myLon, tags, true, 13);
+            Log.d(TAG, "onHandleIntent: lat, lon" + myLat + ", " + myLon);
+            NodesQuery nodesQuery = new NodesQuery(6000, myLat, myLon, tags, true, 13);
             Call<OverpassResponse> streamsResponseCall = streamsService.getOverpassResponse(
             nodesQuery.getFormattedDataQuery());
             Response<OverpassResponse> response = streamsResponseCall.execute();
