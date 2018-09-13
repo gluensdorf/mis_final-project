@@ -20,6 +20,7 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private static final long LOCATION_REFRESH_TIME =  5000;
     private static final float LOCATION_REFRESH_DISTANCE = 5;
     private LandmarkContainer lmContainer = new LandmarkContainer();
+    private Integer amountOfIcons = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,18 +100,13 @@ public class MainActivity extends AppCompatActivity {
 
         connectToWearable();
         initLandmarkData();
+        initTargetLocation();
 
         setContentView(R.layout.activity_main);
 
 //        final Button buttonFoo = findViewById(R.id.button);
         final Button buttonBar = findViewById(R.id.button2);
         final Button buttonFoobar = findViewById(R.id.button3);
-
-//        final queryHelper mQueryHelper = new queryHelper();
-//
-//        queryHelper.myLat = myCurrentLatitude;
-//        queryHelper.myLon = myCurrentLongitude;
-//        buttonFoo.setOnClickListener(mQueryHelper.handleClick);
 
         final Intent queryIntent = new Intent(this, queryService.class);
         queryService.myLat = myCurrentLatitude;
@@ -146,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
             lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
             String msg = Double.toString(myCurrentLatitude) + ' ' + Double.toString(myCurrentLongitude);
             popToast(msg);
+            updateData();
         }
 
         @Override
@@ -166,8 +164,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void initLandmarkData() {
-        String initLandmark = "";
+        String initLandmark = "[{\"x\":0,\"y\":0,\"tag\":\"myLocation\"}]";
         putLandmarkData(initLandmark);
+    }
+    private void initTargetLocation() {
+        targetLocation = new LatLngBounds(new LatLng(0.0, 0.0),new LatLng(0.0, 0.0));
     }
 
     private void putLandmarkData(String jsonLandmarkData) {
@@ -178,9 +179,6 @@ public class MainActivity extends AppCompatActivity {
         map.putString(LANDMARKDATA_KEY, jsonLandmarkData);
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         Task<DataItem> putDataItem = mDataClient.putDataItem(putDataReq);
-        Log.d(TAG, "putLandmarkData: FOOBAR");
-//        putDataItem.
-//        Wearable.DataApi.putDataItem(mGoogleApiClient, putDataMapReq.asPutDataRequest());
     }
 
     private void connectToWearable() {
@@ -215,15 +213,16 @@ public class MainActivity extends AppCompatActivity {
             json = intent.getStringExtra(queryService.PARAM_OUT_MSG);
             Gson gson = new Gson();
             mElementList = gson.fromJson(json, List.class);
-            System.out.println("OSM data received in mainActivity.");
+//            System.out.println("OSM data received in mainActivity.");
             System.out.println(intent.getStringExtra(queryService.PARAM_OUT_MSG));
             try {
+//                Log.d(TAG, "onReceive: got something" + intent.getStringExtra(queryService.PARAM_OUT_MSG));
                 jsonObject = new JSONObject("{locations:" + intent.getStringExtra(queryService.PARAM_OUT_MSG) + "}");
                 jsonArray = jsonObject.getJSONArray("locations");
             } catch (Exception e ){
                 e.printStackTrace();
             }
-            foobar();
+            updateData();
         }
     }
 
@@ -244,32 +243,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // do something with the data from OSM
-    protected void foobar() {
+    protected void updateData() {
         lmContainer.clearLmArray();
         try {
             lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
-//            lmContainer.translateLatLonIntoXY();
-            ArrayList<Double> minMaxRatioArr = lmContainer.getMinMaxCoords();
-            lmContainer.setLandmarksIntoLocalCoords();
-//            lmContainer.setCoordsIntoCanvasResolution(minMaxRatioArr.get(4));
-            System.out.println(jsonArray);
+            double lonTarget = targetLocation.getCenter().longitude;
+            double latTarget = targetLocation.getCenter().latitude;
+            lmContainer.setTargetLocation(new Landmark(lonTarget, latTarget, "myTarget"));
+            Log.d(TAG, "updateData: jsonArray.length()" + jsonArray.length());
             for (int i = 0; i < jsonArray.length(); i++) {
                 double lon = jsonArray.getJSONObject(i).getDouble("lon");
                 double lat = jsonArray.getJSONObject(i).getDouble("lat");
                 JSONObject jsonObjectTags = (JSONObject) jsonArray.getJSONObject(i).get("tags");
                 String tags = jsonObjectTags.getString("amenity");
+                Log.d(TAG, "updateData: " + tags);
                 Landmark tmpLm = new Landmark(lon, lat, tags);
                 lmContainer.addLandmark(tmpLm);
-                Log.d(TAG, "foobar: filling lmContainer with landmarks from OSM.");
             }
+            ArrayList<Double> minMaxRatioArr = lmContainer.getMinMaxCoords();
+            Log.d(TAG, "updateData minMaxRatioArr: " + minMaxRatioArr);
+            lmContainer.setLandmarksIntoLocalCoords();
+            lmContainer.translateLatLonIntoXY();
+
+            lmContainer.setCoordsIntoCanvasResolution(minMaxRatioArr.get(4));
+            Log.d(TAG, "updateData: lmContainer.getLmArr().size()" + lmContainer.getLmArr().size());
+
             lmContainer.distanceLandmarksToMyLocation();
-//            System.out.println(lmContainer.getMinMaxCoords());
-//            lmContainer.sortByDistance();
-            Log.d(TAG, "foobar: lmArr size: " + lmContainer.getLmArr().size());
+            lmContainer.sortByDistance();
+//            Log.d(TAG, "foobar: lmArr size: " + lmContainer.getLmArr().size());
 //            for(int i = 0; i < lmContainer.getLmArr().size(); i++){
 //                System.out.println(lmContainer.getLmArr().get(i).dist);
 //            }
-            System.out.println(lmContainer.containerToJSONObject().toString());
+//            System.out.println(lmContainer.containerToJSONObject().toString());
             putLandmarkData(lmContainer.containerToJSONObject().toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -299,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
                 double lat = targetLocation.getCenter().latitude;
                 lmContainer.setTargetLocation(new Landmark(lon, lat, "myTarget"));
 
-                Log.d(TAG, "onActivityResult: " + targetLocation);
+//                Log.d(TAG, "onActivityResult: " + targetLocation);
 //                String toastMsg2 = String.format("Place: %s", place.getName());
 
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();

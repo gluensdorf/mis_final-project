@@ -50,11 +50,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public static String landmarkData = "30";
     private JSONArray jsonArray;
     public JSONObject jsonObject;
-    private String tagLatLngString;
+//    private String tagLatLngString;
     private String idLandmarks;
     private String latLandmarks;
     private String lngLandmarks;
-    private DataLayerListenerService mDataLayerListener;
+//    private DataLayerListenerService mDataLayerListener;
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents){
@@ -114,11 +114,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
 
-
-
         Log.d("onResume", "onResume: onResume");
         mSensorManager.registerListener(this, mMagnetometer,
-                SensorManager.SENSOR_DELAY_NORMAL);
+                100000); // 100.000 micro seconds
+//                SensorManager.SENSOR_DELAY_NORMAL);
         Wearable.getDataClient(this).addListener(this);
 
     }
@@ -184,16 +183,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     //
     private void doSomething(String data) {
         try {
-            jsonArray = new JSONArray(data);
-            jsonObject = jsonArray.getJSONObject(0);
-//            jsonObject = new JSONObject(data);
-            Log.d(TAG, "doSomething: " + "WOLOLOLOLOLOLOLO");
-            //get first element, find tag, x and y, make them into tagString
-            Log.d(TAG, "doSomething: JsonObject " + jsonObject);
-            idLandmarks = jsonObject.get("tag").toString();
-            latLandmarks = jsonObject.get("x").toString();
-            lngLandmarks = jsonObject.get("y").toString();
-            loadLandmarksData();
+            Log.d(TAG, "doSomething data-length: " + data);
+            if (data != null) {
+                jsonArray = new JSONArray(data);
+                jsonObject = jsonArray.getJSONObject(0);
+                //get first element, find tag, x and y, make them into tagString
+                idLandmarks = jsonObject.get("tag").toString();
+                latLandmarks = jsonObject.get("x").toString();
+                lngLandmarks = jsonObject.get("y").toString();
+                loadLandmarksData();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -206,18 +205,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             for (int i = 1; i < jsonArray.length(); i++) {
 //                String[] tagLatLngString = landmarkData.toString().split(", "); //what is the seperation symbol
                 // should we trim the date to remove leerzeichen?
-                try {
-                    jsonObject = jsonArray.getJSONObject(i);
-                    String tag = jsonObject.get("tag").toString();
-                    Double lat = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
-                    Double lng = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
-                    Log.d(TAG, "Tag: " + tag);
-                    Log.d(TAG, "x/lat: " + lat);
-                    Log.d(TAG, "y/lng: " + lng);
+//                try {
+                    circleMyView.fillArray(jsonArray);
+//                    jsonObject = jsonArray.getJSONObject(i);
+//                    String tag = jsonObject.get("tag").toString();
+//                    Double lat = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
+//                    Double lng = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
+//                    Log.d(TAG, "Tag: " + tag);
+//                    Log.d(TAG, "x/lat: " + lat);
+//                    Log.d(TAG, "y/lng: " + lng);
+//
+//                    circleMyView.drawLandmark(lat, lng, tag);
                     //                MyView.drawCircle(lat, lng);
-                } catch (JSONException jsonEx) {
-                    jsonEx.printStackTrace();
-                }
+//                } catch (JSONException jsonEx) {
+//                    jsonEx.printStackTrace();
+//                }
             }
         } catch (NullPointerException e) {
             e.printStackTrace();

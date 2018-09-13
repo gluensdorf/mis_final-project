@@ -1,5 +1,7 @@
 package com.example.darlokh.test_smartwatch;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -11,12 +13,14 @@ public class LandmarkContainer {
     private ArrayList<Landmark> lmArr = new ArrayList<Landmark>();
     private Landmark myLocation;
     private Landmark targetLocation;
+    private String TAG = "lmContainer";
 
     public LandmarkContainer(){}
 
     public void addLandmark(Landmark newLandmark){
         lmArr.add(newLandmark);
     }
+
     public void distanceLandmarksToMyLocation(){
         for(int i=0; i < lmArr.size(); i++){
             lmArr.get(i).euclideanDist(myLocation);
@@ -109,9 +113,12 @@ public class LandmarkContainer {
         double tmpMinLat = 99999;
         double tmpMaxLon = -99999;
         double tmpMinLon = 99999;
+        Log.d(TAG, "getMinMaxCoords: lmArr.size()" + lmArr.size());
         for (int i=0; i<lmArr.size(); i++){
+            Log.d(TAG, "getMinMaxCoords max lmArr.x: " + lmArr.get(i).x);
             tmpMaxLon = Math.max(lmArr.get(i).x, tmpMaxLon);
             tmpMinLon = Math.min(lmArr.get(i).x, tmpMinLon);
+            Log.d(TAG, "getMinMaxCoords max lmArr.y: " + lmArr.get(i).y);
             tmpMaxLat = Math.max(lmArr.get(i).y, tmpMaxLat);
             tmpMinLat = Math.min(lmArr.get(i).y, tmpMinLat);
 //            lmArr.get(i).x = lmArr.get(i).x - myLocation.x;
@@ -123,7 +130,7 @@ public class LandmarkContainer {
         result.add(tmpMaxLat);
         result.add(tmpMinLat);
         result.add(Math.max(Math.abs(tmpMaxLon) - Math.abs(tmpMinLon),
-                Math.abs(tmpMaxLat) - Math.abs(tmpMinLat)));
+                Math.abs(tmpMaxLat) - Math.abs(tmpMinLat)) * 1000);
         return result;
     }
 
@@ -144,6 +151,7 @@ public class LandmarkContainer {
             lmArr.get(i).x = lmArr.get(i).x * radiusEarth * Math.cos(myLocation.x);
             lmArr.get(i).y = lmArr.get(i).y * radiusEarth;
         }
+        Log.d(TAG, "translateLatLonIntoXY: " + targetLocation.x);
         targetLocation.x = targetLocation.x * radiusEarth * Math.cos(myLocation.x);
         targetLocation.y = targetLocation.y * radiusEarth;
         myLocation.x = myLocation.x * radiusEarth * Math.cos(myLocation.x);

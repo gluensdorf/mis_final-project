@@ -4,7 +4,12 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.View;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static com.example.darlokh.test_smartwatch.MainActivity.landmarkData;
 
@@ -19,7 +24,9 @@ public class MyView extends View
 
     public int x,y,rad, ls;
     public float turnDegrees;
-
+    private String TAG = "MyViewWatch";
+    private JSONArray jsonArray = null;
+    private JSONObject jsonObject = null;
     float xF, yF, xF2, yF2;
 
     public MyView(Context context)
@@ -49,18 +56,73 @@ public class MyView extends View
     @Override
     protected void onDraw(Canvas blaCanvas) {
         super.onDraw(blaCanvas);
-        drawLandmarks();
+//        drawLandmarks();
         rad = Integer.parseInt(MainActivity.landmarkData);
 
         canvas = blaCanvas;
         canvas.rotate(turnDegrees, this.getWidth()/2, this.getHeight()/2);
         canvas.drawCircle(getWidth()/2,30, rad, towerPaint);
 //        canvas.drawCircle(x, y, rad, waterBodiesPaint);
-
+        if (jsonArray != null) {
+            double lat;
+            double lng;
+            String tag;
+            for (int i = 0; i <= jsonArray.length() -1; i++) {
+                try {
+                    jsonObject = jsonArray.getJSONObject(i);
+                    tag = jsonObject.get("tag").toString();
+                    lat = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
+                    lng = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
+//                    Log.d(TAG, "Tag: " + tag);
+//                    Log.d(TAG, "x/lat: " + lat);
+//                    Log.d(TAG, "y/lng: " + lng);
+                    switch (tag) {
+                        case "school":
+                            break;
+                        case "myLocation":
+                            break;
+                        case "place_of_worship":
+//                            Log.d(TAG, "drawLandmark: should draw an icon.");
+//                            Log.d(TAG, "drawLandmark latitude: " + (int) lat);
+//                            Log.d(TAG, "drawLandmark longitude: " + (int) lng);
+                            canvas.drawCircle((int) lat, (int) lng, rad / 2, waterBodiesPaint);
+                            break;
+                        default:
+                            break;
+                    }
+                } catch (JSONException jsonEx) {
+                    jsonEx.printStackTrace();
+                }
+            }
+        }
         invalidate();
     }
 
-    void drawLandmarks(){
+    public void fillArray(JSONArray arr){
+        jsonArray = arr;
+    }
+    // icons may indicate rough shape of a landmark
+    // triangle => tower, something tall or "pointy"
+    // square => a building, some kind of infrastructure
+    // circle => misc, everything else
+    //
+    // colorcoding will consist out of three variants (white background)
+    // red, green, blue
+    public void drawLandmark(double lat, double lng, String tag){
+        switch (tag){
+            case "school":
+                break;
+            case "myLocation":
+                break;
+            case "place_of_worship":
+//                Log.d(TAG, "drawLandmark: should draw an icon.");
+//                Log.d(TAG, "drawLandmark latitude: " + (int) lat);
+//                Log.d(TAG, "drawLandmark longitude: " + (int) lng);
+                canvas.drawCircle((int) lat, (int) lng, rad/2, waterBodiesPaint);
+                break;
+            default:
+                return;
+            }
     }
 
     void setDegrees(float newDegrees) {

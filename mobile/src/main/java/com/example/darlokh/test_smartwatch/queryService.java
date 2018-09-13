@@ -38,7 +38,7 @@ public class queryService extends IntentService {
             OverpassService streamsService = ApiModule.provideOverpassService();
             Map<String, String> tags = new HashMap<String, String>() {
                 {
-                    put("amenity", "school");
+                    put("amenity", "place_of_worship");
                 }
             };
             Log.d(TAG, "onHandleIntent: lat, lon" + myLat + ", " + myLon);
