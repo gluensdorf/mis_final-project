@@ -20,6 +20,7 @@ public class MyView extends View
     Paint towerPaint = new Paint();
     Paint natureMarks = new Paint();
     Paint electricityMarks = new Paint();
+    Paint myLocationPaint = new Paint();
     Canvas canvas = new Canvas();
 
     public int x,y,rad, ls;
@@ -51,6 +52,7 @@ public class MyView extends View
         towerPaint.setColor(Color.parseColor("#823410"));
         natureMarks.setColor(Color.parseColor("#478210"));
         electricityMarks.setColor(Color.parseColor("#acabb2"));
+        myLocationPaint.setColor(Color.parseColor("#ffffff"));
     }
 
     @Override
@@ -95,6 +97,7 @@ public class MyView extends View
                 }
             }
         }
+        canvas.drawCircle(getWidth()/2, getHeight()/2,rad/2, myLocationPaint);
         invalidate();
     }
 
