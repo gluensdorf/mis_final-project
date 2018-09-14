@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
+import android.view.WindowManager;
 
 import com.google.android.gms.common.data.FreezableUtils;
 import com.google.android.gms.wearable.CapabilityClient;
@@ -54,6 +55,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private String idLandmarks;
     private String latLandmarks;
     private String lngLandmarks;
+    private String STATE_LANDMARKS = "landmarkJSONArray";
 //    private DataLayerListenerService mDataLayerListener;
 
     @Override
@@ -101,6 +103,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
         circleMyView = new MyView(this);
         setContentView(circleMyView);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -116,10 +120,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
         Log.d("onResume", "onResume: onResume");
         mSensorManager.registerListener(this, mMagnetometer,
-                100000); // 100.000 micro seconds
+                100000); // 100.000 micro seconds = 0.1 seconds
 //                SensorManager.SENSOR_DELAY_NORMAL);
         Wearable.getDataClient(this).addListener(this);
-
+//        if (jsonArray != null) {
+//            circleMyView.fillArray(jsonArray);
+//        }
     }
 
     @Override
@@ -153,6 +159,28 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         Log.d("STOP", "onStop: STOP");
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save current landmarks
+        savedInstanceState.putString(STATE_LANDMARKS, jsonArray.toString());
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Always call the superclass so it can restore the view hierarchy
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore state members from saved instance
+        String tmpString = savedInstanceState.getString(STATE_LANDMARKS);
+        try {
+            JSONArray tmpJSONArr = new JSONArray(tmpString);
+            circleMyView.fillArray(tmpJSONArr);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 //    public class DataBroadcastReceiver extends BroadcastReceiver {
 //
 //        public String landmarkData;

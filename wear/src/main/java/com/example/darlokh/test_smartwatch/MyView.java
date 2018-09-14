@@ -67,14 +67,14 @@ public class MyView extends View
 //        canvas.drawCircle(x, y, rad, waterBodiesPaint);
         if (jsonArray != null) {
             double lat;
-            double lng;
+            double lon;
             String tag;
             for (int i = 0; i <= jsonArray.length() -1; i++) {
                 try {
                     jsonObject = jsonArray.getJSONObject(i);
                     tag = jsonObject.get("tag").toString();
-                    lat = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
-                    lng = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
+                    lon = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
+                    lat = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
 //                    Log.d(TAG, "Tag: " + tag);
 //                    Log.d(TAG, "x/lat: " + lat);
 //                    Log.d(TAG, "y/lng: " + lng);
@@ -85,9 +85,9 @@ public class MyView extends View
                             break;
                         case "place_of_worship":
 //                            Log.d(TAG, "drawLandmark: should draw an icon.");
-//                            Log.d(TAG, "drawLandmark latitude: " + (int) lat);
-//                            Log.d(TAG, "drawLandmark longitude: " + (int) lng);
-                            canvas.drawCircle((int) lat, (int) lng, rad / 2, waterBodiesPaint);
+                            Log.d(TAG, "drawLandmark latitude: " + (int) lat);
+                            Log.d(TAG, "drawLandmark longitude: " + (int) lon);
+                            canvas.drawCircle((int) lat, (int) lon, rad / 2, waterBodiesPaint);
                             break;
                         default:
                             break;
@@ -111,22 +111,22 @@ public class MyView extends View
     //
     // colorcoding will consist out of three variants (white background)
     // red, green, blue
-    public void drawLandmark(double lat, double lng, String tag){
-        switch (tag){
-            case "school":
-                break;
-            case "myLocation":
-                break;
-            case "place_of_worship":
-//                Log.d(TAG, "drawLandmark: should draw an icon.");
-//                Log.d(TAG, "drawLandmark latitude: " + (int) lat);
-//                Log.d(TAG, "drawLandmark longitude: " + (int) lng);
-                canvas.drawCircle((int) lat, (int) lng, rad/2, waterBodiesPaint);
-                break;
-            default:
-                return;
-            }
-    }
+//    public void drawLandmark(double lat, double lon, String tag){
+//        switch (tag){
+//            case "school":
+//                break;
+//            case "myLocation":
+//                break;
+//            case "place_of_worship":
+////                Log.d(TAG, "drawLandmark: should draw an icon.");
+////                Log.d(TAG, "drawLandmark latitude: " + (int) lat);
+////                Log.d(TAG, "drawLandmark longitude: " + (int) lng);
+//                canvas.drawCircle((int) lat, (int) lon, rad/2, waterBodiesPaint);
+//                break;
+//            default:
+//                return;
+//            }
+//    }
 
     void setDegrees(float newDegrees) {
 //        canvas.rotate(newDegrees);

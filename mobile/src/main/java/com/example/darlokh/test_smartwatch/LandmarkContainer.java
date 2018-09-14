@@ -115,10 +115,11 @@ public class LandmarkContainer {
         double tmpMinLon = 99999;
         Log.d(TAG, "getMinMaxCoords: lmArr.size()" + lmArr.size());
         for (int i=0; i<lmArr.size(); i++){
-            Log.d(TAG, "getMinMaxCoords max lmArr.x: " + lmArr.get(i).x);
+            // landmark(lon, lat)
+            Log.d(TAG, "getMinMaxCoords max lmArr.x/lon: " + lmArr.get(i).x);
             tmpMaxLon = Math.max(lmArr.get(i).x, tmpMaxLon);
             tmpMinLon = Math.min(lmArr.get(i).x, tmpMinLon);
-            Log.d(TAG, "getMinMaxCoords max lmArr.y: " + lmArr.get(i).y);
+            Log.d(TAG, "getMinMaxCoords max lmArr.y/lat: " + lmArr.get(i).y);
             tmpMaxLat = Math.max(lmArr.get(i).y, tmpMaxLat);
             tmpMinLat = Math.min(lmArr.get(i).y, tmpMinLat);
 //            lmArr.get(i).x = lmArr.get(i).x - myLocation.x;
@@ -129,8 +130,9 @@ public class LandmarkContainer {
         result.add(tmpMinLon);
         result.add(tmpMaxLat);
         result.add(tmpMinLat);
+        // select the value which is furthest away from myLocation, times 1000 to get meters
         result.add(Math.max(Math.abs(tmpMaxLon) - Math.abs(tmpMinLon),
-                Math.abs(tmpMaxLat) - Math.abs(tmpMinLat)) * 1000);
+                Math.abs(tmpMaxLat) - Math.abs(tmpMinLat)));
         return result;
     }
 
@@ -146,15 +148,15 @@ public class LandmarkContainer {
     }
 
     public void translateLatLonIntoXY(){
-        int radiusEarth = 6371;
+        int radiusEarth = 6371; // km
         for (int i=0; i<lmArr.size(); i++) {
-            lmArr.get(i).x = lmArr.get(i).x * radiusEarth * Math.cos(myLocation.x);
+            lmArr.get(i).x = lmArr.get(i).x * radiusEarth * Math.cos(myLocation.y);
             lmArr.get(i).y = lmArr.get(i).y * radiusEarth;
         }
         Log.d(TAG, "translateLatLonIntoXY: " + targetLocation.x);
-        targetLocation.x = targetLocation.x * radiusEarth * Math.cos(myLocation.x);
+        targetLocation.x = targetLocation.x * radiusEarth * Math.cos(myLocation.y);
         targetLocation.y = targetLocation.y * radiusEarth;
-        myLocation.x = myLocation.x * radiusEarth * Math.cos(myLocation.x);
+        myLocation.x = myLocation.x * radiusEarth * Math.cos(myLocation.y);
         myLocation.y = myLocation.y * radiusEarth;
 
     }

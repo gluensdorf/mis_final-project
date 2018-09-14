@@ -42,7 +42,7 @@ public class queryService extends IntentService {
                 }
             };
             Log.d(TAG, "onHandleIntent: lat, lon" + myLat + ", " + myLon);
-            NodesQuery nodesQuery = new NodesQuery(6000, myLat, myLon, tags, true, 13);
+            NodesQuery nodesQuery = new NodesQuery(3000, myLat, myLon, tags, true, 13);
             Call<OverpassResponse> streamsResponseCall = streamsService.getOverpassResponse(
             nodesQuery.getFormattedDataQuery());
             Response<OverpassResponse> response = streamsResponseCall.execute();
