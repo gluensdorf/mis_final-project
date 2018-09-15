@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -51,60 +52,32 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     public static String landmarkData = "30";
     private JSONArray jsonArray;
     public JSONObject jsonObject;
-//    private String tagLatLngString;
     private String idLandmarks;
     private String latLandmarks;
     private String lngLandmarks;
     private String STATE_LANDMARKS = "landmarkJSONArray";
-//    private DataLayerListenerService mDataLayerListener;
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents){
-        Log.d(TAG, "onDataChanged: ABCD");
         final List<DataEvent> events = FreezableUtils.freezeIterable(dataEvents);
         for(DataEvent event : events) {
             final Uri uri = event.getDataItem().getUri();
             final String path = uri!=null ? uri.getPath() : null;
-            Log.d(TAG, "onDataChanged: " + path);
             if(jsonLandmarkData.equals(path)) {
                 final DataMap map = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                 // read your values from map:
-                Log.d("DataLayerListener", "onDataChanged: " + "FOOBAR");
                 String stringExample = map.getString(LANDMARKDATA_KEY);
-//                MainActivity.landmarkData = "50";
-                System.out.println(stringExample);
                 doSomething(stringExample);
-
-//                Intent dataIntent = new Intent();
-//                dataIntent.setAction(Intent.ACTION_SEND);
-//                dataIntent.putExtra("data", stringExample);
-//                LocalBroadcastManager.getInstance(this).sendBroadcast(dataIntent);
             }
         }
-
-//        for (DataEvent event : dataEvents) {
-//            if (event.getType() == DataEvent.TYPE_CHANGED) {
-//                // DataItem changed
-//                DataItem item = event.getDataItem();
-//                if (item.getUri().getPath().compareTo(jsonLandmarkData) == 0) {
-//                    DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-//                    Log.d(TAG, "onDataChanged: " + dataMap.getString(jsonLandmarkData));
-//                }
-//            } else if (event.getType() == DataEvent.TYPE_DELETED){
-//                // DataItem deleted
-//            }
-//        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        mDataLayerListener = new DataLayerListenerService();
-
         circleMyView = new MyView(this);
+        circleMyView.setBackgroundColor(Color.WHITE);
         setContentView(circleMyView);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -123,9 +96,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 100000); // 100.000 micro seconds = 0.1 seconds
 //                SensorManager.SENSOR_DELAY_NORMAL);
         Wearable.getDataClient(this).addListener(this);
-//        if (jsonArray != null) {
-//            circleMyView.fillArray(jsonArray);
-//        }
     }
 
     @Override
@@ -162,8 +132,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save current landmarks
-        savedInstanceState.putString(STATE_LANDMARKS, jsonArray.toString());
-
+        if (jsonArray != null) {
+            savedInstanceState.putString(STATE_LANDMARKS, jsonArray.toString());
+        }
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -173,28 +144,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         super.onRestoreInstanceState(savedInstanceState);
 
         // Restore state members from saved instance
-        String tmpString = savedInstanceState.getString(STATE_LANDMARKS);
-        try {
-            JSONArray tmpJSONArr = new JSONArray(tmpString);
-            circleMyView.fillArray(tmpJSONArr);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (savedInstanceState.getString(STATE_LANDMARKS) != null) {
+            String tmpString = savedInstanceState.getString(STATE_LANDMARKS);
+            try {
+                JSONArray tmpJSONArr = new JSONArray(tmpString);
+                circleMyView.fillArray(tmpJSONArr);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
-//    public class DataBroadcastReceiver extends BroadcastReceiver {
-//
-//        public String landmarkData;
-//
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            Log.d(TAG, "onReceive: ");
-//            landmarkData = intent.getStringExtra("data");
-////            Log.d("log", "onReceive: something" + landmarkData);
-//            doSomething(landmarkData);
-//            loadLandmarksData();
-//
-//        }
-//    }
 
     // TODO: implementing the following pseudocode
     // add new attribute landmarkList
@@ -229,25 +188,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void loadLandmarksData(){
         try {
             Log.d(TAG, "loadLandmarksData: jsonArray length = " + jsonArray.length());
-            //iterate over string to split them
             for (int i = 1; i < jsonArray.length(); i++) {
-//                String[] tagLatLngString = landmarkData.toString().split(", "); //what is the seperation symbol
-                // should we trim the date to remove leerzeichen?
-//                try {
-                    circleMyView.fillArray(jsonArray);
-//                    jsonObject = jsonArray.getJSONObject(i);
-//                    String tag = jsonObject.get("tag").toString();
-//                    Double lat = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
-//                    Double lng = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
-//                    Log.d(TAG, "Tag: " + tag);
-//                    Log.d(TAG, "x/lat: " + lat);
-//                    Log.d(TAG, "y/lng: " + lng);
-//
-//                    circleMyView.drawLandmark(lat, lng, tag);
-                    //                MyView.drawCircle(lat, lng);
-//                } catch (JSONException jsonEx) {
-//                    jsonEx.printStackTrace();
-//                }
+                circleMyView.fillArray(jsonArray);
             }
         } catch (NullPointerException e) {
             e.printStackTrace();

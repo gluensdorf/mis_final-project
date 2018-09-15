@@ -47,46 +47,42 @@ public class MyView extends View
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);
         canvas.drawPaint(paint);
-        waterBodiesPaint.setColor(Color.parseColor("#105e82"));
         paint.setColor(Color.parseColor("#CD5C5C"));
-        towerPaint.setColor(Color.parseColor("#823410"));
-        natureMarks.setColor(Color.parseColor("#478210"));
+        towerPaint.setColor(Color.RED);
+        waterBodiesPaint.setColor(Color.BLUE);
+        natureMarks.setColor(Color.GREEN);
         electricityMarks.setColor(Color.parseColor("#acabb2"));
-        myLocationPaint.setColor(Color.parseColor("#ffffff"));
+        myLocationPaint.setColor(Color.BLACK);
     }
 
     @Override
     protected void onDraw(Canvas blaCanvas) {
         super.onDraw(blaCanvas);
-//        drawLandmarks();
         rad = Integer.parseInt(MainActivity.landmarkData);
 
         canvas = blaCanvas;
-        canvas.rotate(turnDegrees, this.getWidth()/2, this.getHeight()/2);
-        canvas.drawCircle(getWidth()/2,30, rad, towerPaint);
+        canvas.rotate(270 + turnDegrees, this.getWidth()/2, this.getHeight()/2);
+        canvas.drawCircle(getWidth() - 30,getHeight() / 2, rad, towerPaint);
 //        canvas.drawCircle(x, y, rad, waterBodiesPaint);
         if (jsonArray != null) {
             double lat;
             double lon;
             String tag;
-            for (int i = 0; i <= jsonArray.length() -1; i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 try {
                     jsonObject = jsonArray.getJSONObject(i);
                     tag = jsonObject.get("tag").toString();
                     lon = jsonObject.getDouble("x");//Double.parseDouble(tagLatLngString[1]);
                     lat = jsonObject.getDouble("y");//Double.parseDouble(tagLatLngString[2]);
-//                    Log.d(TAG, "Tag: " + tag);
-//                    Log.d(TAG, "x/lat: " + lat);
-//                    Log.d(TAG, "y/lng: " + lng);
                     switch (tag) {
+                        case "myTarget":
+                            canvas.drawCircle((int) lat, (int) lon, rad / 2, natureMarks);
                         case "school":
                             break;
                         case "myLocation":
                             break;
                         case "place_of_worship":
 //                            Log.d(TAG, "drawLandmark: should draw an icon.");
-                            Log.d(TAG, "drawLandmark latitude: " + (int) lat);
-                            Log.d(TAG, "drawLandmark longitude: " + (int) lon);
                             canvas.drawCircle((int) lat, (int) lon, rad / 2, waterBodiesPaint);
                             break;
                         default:

@@ -260,20 +260,31 @@ public class MainActivity extends AppCompatActivity {
                 Landmark tmpLm = new Landmark(lon, lat, tags);
                 lmContainer.addLandmark(tmpLm);
             }
-            ArrayList<Double> minMaxRatioArr = lmContainer.getMinMaxCoords();
-            Log.d(TAG, "updateData minMaxRatioArr: " + minMaxRatioArr);
-            lmContainer.setLandmarksIntoLocalCoords();
             lmContainer.translateLatLonIntoXY();
-
-            lmContainer.setCoordsIntoCanvasResolution(minMaxRatioArr.get(4));
-            Log.d(TAG, "updateData: lmContainer.getLmArr().size()" + lmContainer.getLmArr().size());
-
+            lmContainer.setLandmarksIntoLocalCoords();
             lmContainer.distanceLandmarksToMyLocation();
             lmContainer.sortByDistance();
+
+            ArrayList<Double> minMaxRatioArr = lmContainer.getMinMaxCoords();
+            Log.d(TAG, "updateData minMaxRatioArr: " + minMaxRatioArr);
+
+            final double maxDist;
+            if (lmContainer.getLmArr().size() > 0) {
+                maxDist = lmContainer.getLmArr().get(lmContainer.getLmArr().size() - 1).dist;
+            } else {
+                maxDist = lmContainer.getTargetLocation().dist;
+            }
+            lmContainer.setCoordsIntoCanvasResolution(maxDist);//minMaxRatioArr.get(4));
+            Log.d(TAG, "updateData: lmContainer.getLmArr().size()" + lmContainer.getLmArr().size());
 //            Log.d(TAG, "foobar: lmArr size: " + lmContainer.getLmArr().size());
-//            for(int i = 0; i < lmContainer.getLmArr().size(); i++){
-//                System.out.println(lmContainer.getLmArr().get(i).dist);
-//            }
+            for(int i = 0; i < lmContainer.getLmArr().size(); i++){
+                System.out.println("dist: " + lmContainer.getLmArr().get(i).dist);
+                System.out.println("x: " + lmContainer.getLmArr().get(i).x);
+                System.out.println("y: " + lmContainer.getLmArr().get(i).y);
+            }
+            System.out.println("dist target: " + lmContainer.getTargetLocation().dist);
+            System.out.println("x target: " + lmContainer.getTargetLocation().x);
+            System.out.println("y target: " + lmContainer.getTargetLocation().y);
 //            System.out.println(lmContainer.containerToJSONObject().toString());
             putLandmarkData(lmContainer.containerToJSONObject().toString());
         } catch (Exception e) {

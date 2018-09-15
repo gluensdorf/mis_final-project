@@ -116,10 +116,8 @@ public class LandmarkContainer {
         Log.d(TAG, "getMinMaxCoords: lmArr.size()" + lmArr.size());
         for (int i=0; i<lmArr.size(); i++){
             // landmark(lon, lat)
-            Log.d(TAG, "getMinMaxCoords max lmArr.x/lon: " + lmArr.get(i).x);
             tmpMaxLon = Math.max(lmArr.get(i).x, tmpMaxLon);
             tmpMinLon = Math.min(lmArr.get(i).x, tmpMinLon);
-            Log.d(TAG, "getMinMaxCoords max lmArr.y/lat: " + lmArr.get(i).y);
             tmpMaxLat = Math.max(lmArr.get(i).y, tmpMaxLat);
             tmpMinLat = Math.min(lmArr.get(i).y, tmpMinLat);
 //            lmArr.get(i).x = lmArr.get(i).x - myLocation.x;
@@ -130,9 +128,12 @@ public class LandmarkContainer {
         result.add(tmpMinLon);
         result.add(tmpMaxLat);
         result.add(tmpMinLat);
-        // select the value which is furthest away from myLocation, times 1000 to get meters
-        result.add(Math.max(Math.abs(tmpMaxLon) - Math.abs(tmpMinLon),
-                Math.abs(tmpMaxLat) - Math.abs(tmpMinLat)));
+        // select the value which is furthest away from myLocation
+        result.add(Math.max(
+                Math.max(Math.abs(tmpMaxLon), Math.abs(tmpMinLon)),
+                Math.max(Math.abs(tmpMaxLat), Math.abs(tmpMinLat))
+        ));
+        Log.d(TAG, "getMinMaxCoords: " + result.get(4));
         return result;
     }
 
@@ -147,27 +148,42 @@ public class LandmarkContainer {
         myLocation.y -= myLocation.y;
     }
 
+    // https://stackoverflow.com/questions/16266809/convert-from-latitude-longitude-to-x-y
     public void translateLatLonIntoXY(){
         int radiusEarth = 6371; // km
         for (int i=0; i<lmArr.size(); i++) {
-            lmArr.get(i).x = lmArr.get(i).x * radiusEarth * Math.cos(myLocation.y);
-            lmArr.get(i).y = lmArr.get(i).y * radiusEarth;
+            lmArr.get(i).x = Math.toRadians(lmArr.get(i).x) * radiusEarth * Math.cos(Math.toRadians(myLocation.y));
+            lmArr.get(i).y = Math.toRadians(lmArr.get(i).y) * radiusEarth;
         }
         Log.d(TAG, "translateLatLonIntoXY: " + targetLocation.x);
-        targetLocation.x = targetLocation.x * radiusEarth * Math.cos(myLocation.y);
-        targetLocation.y = targetLocation.y * radiusEarth;
-        myLocation.x = myLocation.x * radiusEarth * Math.cos(myLocation.y);
-        myLocation.y = myLocation.y * radiusEarth;
+        targetLocation.x = Math.toRadians(targetLocation.x) * radiusEarth * Math.cos(Math.toRadians(myLocation.y));
+        targetLocation.y = Math.toRadians(targetLocation.y) * radiusEarth;
+        myLocation.x = Math.toRadians(myLocation.x) * radiusEarth * Math.cos(Math.toRadians(myLocation.y));
+        myLocation.y = Math.toRadians(myLocation.y) * radiusEarth;
 
     }
 
-    public void setCoordsIntoCanvasResolution(double factor){
+    public void setCoordsIntoCanvasResolution(double maxXYValue){
+        double factor = (160 / (maxXYValue));
+        Log.d(TAG, "setCoordsIntoCanvasResolution: " + factor);
         for (int i=0; i<lmArr.size(); i++) {
-            lmArr.get(i).x = 160 + lmArr.get(i).x * (factor/320);
-            lmArr.get(i).y = 160 + lmArr.get(i).y * (factor/320);
+//            Log.d(TAG, "vorher x: " + lmArr.get(i).x);
+//            Log.d(TAG, "vorher y: " + lmArr.get(i).y);
+            lmArr.get(i).x = 160 + lmArr.get(i).x * factor;
+            lmArr.get(i).y = 160 + lmArr.get(i).y * factor;
+//            Log.d(TAG, "nachher x: " + lmArr.get(i).x);
+//            Log.d(TAG, "nachher y: " + lmArr.get(i).y);
+//            double tmpx = lmArr.get(i).x;
+//            double tmpy = lmArr.get(i).y;
+//            lmArr.get(i).x = tmpy;
+//            lmArr.get(i).y = tmpx;
         }
-        targetLocation.x = 160 + targetLocation.x * (factor/320);
-        targetLocation.y = 160 + targetLocation.y * (factor/320);
+        targetLocation.x = 160 + targetLocation.x * factor;
+        targetLocation.y = 160 + targetLocation.y * factor;
+//        double tmpx = targetLocation.x;
+//        double tmpy = targetLocation.y;
+//        targetLocation.x = tmpy;
+//        targetLocation.y = tmpx;
         myLocation.x = 160 + myLocation.x;
         myLocation.y = 160 + myLocation.y;
     }
