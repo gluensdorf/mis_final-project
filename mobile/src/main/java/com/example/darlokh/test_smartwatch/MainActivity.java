@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
             lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
             String msg = Double.toString(myCurrentLatitude) + ' ' + Double.toString(myCurrentLongitude);
-            popToast(msg);
+//            popToast(msg);
             updateData();
         }
 

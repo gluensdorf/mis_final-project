@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">No Way Navigation</string>
+    <string name="pick_target">1. Pick Target</string>
+    <string name="start_navigation">2. Start navigation on watch</string>
+    <string name="legend">\n
+        - black circle: your location\n
+        - green circle, red center: target\n
+        \n
+        - black line: direction towards target\n
+        - distance between red lines: 1km\n
+        \n
+        - green triangle: peak\n
+        - red triangle: monument\n
+        - blue circle: weir\n
+        - yellow square: tower\n
+        - grey square: church\n
+    </string>
 </resources>

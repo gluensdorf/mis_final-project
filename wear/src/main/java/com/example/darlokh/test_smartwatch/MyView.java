@@ -136,7 +136,6 @@ public class MyView extends View
                 }
             }
         }
-//        canvas.drawCircle(getWidth()/2, getHeight()/2, factor * 2, distanceIndicatorPaint);
         for (int i = 1; i <= (int) ((getWidth()/2)/factor); i++){
             canvas.drawCircle(getWidth()/2, getHeight()/2, i*factor, distanceIndicatorPaint);
         }

@@ -21,7 +21,6 @@ import java.util.List;
 
 public class DataLayerListenerService extends WearableListenerService {
     public static String data;
-    public JSONArray newJSONArray;
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
