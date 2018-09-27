@@ -1,7 +1,5 @@
 package com.example.darlokh.test_smartwatch;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,6 +12,8 @@ public class LandmarkContainer {
     private Landmark myLocation;
     private Landmark targetLocation;
     private String TAG = "lmContainer";
+    private int watchDisplayWidth = 280;
+    private double factor = 1;
 
     public LandmarkContainer(){}
 
@@ -24,11 +24,8 @@ public class LandmarkContainer {
     public void distanceLandmarksToMyLocation(){
         for(int i=0; i < lmArr.size(); i++){
             lmArr.get(i).euclideanDist(myLocation);
-            System.out.println(lmArr.get(i).dist);
         }
         targetLocation.euclideanDist(myLocation);
-//        myLocation.x = myLocation.x - myLocation.x;
-//        myLocation.y = myLocation.y - myLocation.y;
     }
 
     public void clearLmArray(){
@@ -74,15 +71,26 @@ public class LandmarkContainer {
         }
         return tmp;
     }
+    private JSONObject factorToJSONObject(){
+        JSONObject tmp = new JSONObject();
+        try {
+            tmp.put("factor", factor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tmp;
+    }
 
     // builds a JSONObject such that myLocation is at index 0, targetLocation at index 1 and
     // landmarks from OSM are added sorted by 'dist' (euclidean distance to myLocation)
     public JSONArray containerToJSONObject(){
         JSONObject tmpLocation = myLocationToJSONObject();
         JSONObject tmpTarget = myTargetToJSONObject();
+        JSONObject tmpFactor = factorToJSONObject();
         JSONArray tmpArr = new JSONArray();
         tmpArr.put(tmpLocation);
         tmpArr.put(tmpTarget);
+        tmpArr.put(tmpFactor);
         sortByDistance();
 
         for(int i=0; i < lmArr.size(); i++){
@@ -100,28 +108,17 @@ public class LandmarkContainer {
         return tmpArr;
     }
 
-    public void JSONObjectToContainer(JSONObject obj){
-//        try {
-//            obj.getJSONArray()
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-    }
-
     public ArrayList<Double> getMinMaxCoords(){
         double tmpMaxLat = -99999;
         double tmpMinLat = 99999;
         double tmpMaxLon = -99999;
         double tmpMinLon = 99999;
-        Log.d(TAG, "getMinMaxCoords: lmArr.size()" + lmArr.size());
         for (int i=0; i<lmArr.size(); i++){
             // landmark(lon, lat)
             tmpMaxLon = Math.max(lmArr.get(i).x, tmpMaxLon);
             tmpMinLon = Math.min(lmArr.get(i).x, tmpMinLon);
             tmpMaxLat = Math.max(lmArr.get(i).y, tmpMaxLat);
             tmpMinLat = Math.min(lmArr.get(i).y, tmpMinLat);
-//            lmArr.get(i).x = lmArr.get(i).x - myLocation.x;
-//            lmArr.get(i).y = lmArr.get(i).y - myLocation.y;
         }
         ArrayList<Double> result = new ArrayList<Double>();
         result.add(tmpMaxLon);
@@ -133,7 +130,6 @@ public class LandmarkContainer {
                 Math.max(Math.abs(tmpMaxLon), Math.abs(tmpMinLon)),
                 Math.max(Math.abs(tmpMaxLat), Math.abs(tmpMinLat))
         ));
-        Log.d(TAG, "getMinMaxCoords: " + result.get(4));
         return result;
     }
 
@@ -155,43 +151,34 @@ public class LandmarkContainer {
             lmArr.get(i).x = Math.toRadians(lmArr.get(i).x) * radiusEarth * Math.cos(Math.toRadians(myLocation.y));
             lmArr.get(i).y = Math.toRadians(lmArr.get(i).y) * radiusEarth;
         }
-        Log.d(TAG, "translateLatLonIntoXY: " + targetLocation.x);
         targetLocation.x = Math.toRadians(targetLocation.x) * radiusEarth * Math.cos(Math.toRadians(myLocation.y));
         targetLocation.y = Math.toRadians(targetLocation.y) * radiusEarth;
         myLocation.x = Math.toRadians(myLocation.x) * radiusEarth * Math.cos(Math.toRadians(myLocation.y));
         myLocation.y = Math.toRadians(myLocation.y) * radiusEarth;
-
     }
 
-    public void setCoordsIntoCanvasResolution(double maxXYValue){
-        double factor = (160 / (maxXYValue));
-        Log.d(TAG, "setCoordsIntoCanvasResolution: " + factor);
+    // TODO: smartwatch resolution is hardcoded, should get resolution dynamically
+    public void transformCoordsIntoCanvasResolution(){
         for (int i=0; i<lmArr.size(); i++) {
-//            Log.d(TAG, "vorher x: " + lmArr.get(i).x);
-//            Log.d(TAG, "vorher y: " + lmArr.get(i).y);
-            lmArr.get(i).x = 160 + lmArr.get(i).x * factor;
-            lmArr.get(i).y = 160 + lmArr.get(i).y * factor;
-//            Log.d(TAG, "nachher x: " + lmArr.get(i).x);
-//            Log.d(TAG, "nachher y: " + lmArr.get(i).y);
-//            double tmpx = lmArr.get(i).x;
-//            double tmpy = lmArr.get(i).y;
-//            lmArr.get(i).x = tmpy;
-//            lmArr.get(i).y = tmpx;
+            lmArr.get(i).x = watchDisplayWidth/2 + lmArr.get(i).x * factor;
+            lmArr.get(i).y = watchDisplayWidth/2 + lmArr.get(i).y * factor;
         }
-        targetLocation.x = 160 + targetLocation.x * factor;
-        targetLocation.y = 160 + targetLocation.y * factor;
-//        double tmpx = targetLocation.x;
-//        double tmpy = targetLocation.y;
-//        targetLocation.x = tmpy;
-//        targetLocation.y = tmpx;
-        myLocation.x = 160 + myLocation.x;
-        myLocation.y = 160 + myLocation.y;
+        targetLocation.x = watchDisplayWidth/2 + targetLocation.x * factor;
+        targetLocation.y = watchDisplayWidth/2 + targetLocation.y * factor;
+        myLocation.x = watchDisplayWidth/2 + myLocation.x;
+        myLocation.y = watchDisplayWidth/2 + myLocation.y;
     }
 
     public Landmark getMyLocation(){
         return myLocation;
     }
 
+    public void calcFactor(double viewRadiusInKilometers){
+        factor = (watchDisplayWidth/2 / (viewRadiusInKilometers));
+    }
+    public double getFactor(){
+        return factor;
+    }
     public ArrayList<Landmark> getLmArr() {
         return lmArr;
     }
@@ -199,9 +186,11 @@ public class LandmarkContainer {
     public Landmark getTargetLocation(){
         return targetLocation;
     }
+
     public void setMyLocation(Landmark myLoc){
         myLocation = myLoc;
     }
+
     public void setTargetLocation(Landmark targetLoc){
         targetLocation = targetLoc;
     }

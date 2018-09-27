@@ -31,8 +31,8 @@ dependencies {
     //    implementation 'com.google.android.gms:play-services-location:+'
     implementation 'com.google.android.gms:play-services-places:15.0.1'
     //    implementation 'com.google.android.gms:play-services-places:10.2.0'
-    //    compile 'hu.supercluster:overpasser:0.2.2'
-    //    compile 'hu.supercluster:overpasser-retrofit-adapter:0.2.2'
+    implementation 'hu.supercluster:overpasser:0.2.2'
+    implementation 'hu.supercluster:overpasser-retrofit-adapter:0.2.2'
     implementation 'com.google.code.gson:gson:2.6.2'
     implementation 'info.metadude.java.library.overpass:overpass-library:2.0.0'
 }

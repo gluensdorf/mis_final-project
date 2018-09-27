@@ -36,8 +36,6 @@ public class DataLayerListenerService extends WearableListenerService {
                 // read your values from map:
                 Log.d("DataLayerListener", "onDataChanged: " + "FOOBAR");
                 String stringExample = map.getString("com.example.key.landmarkdata");
-                MainActivity.landmarkData = "50";
-                System.out.println(stringExample);
 
                 Intent dataIntent = new Intent();
                 dataIntent.setAction(Intent.ACTION_SEND);

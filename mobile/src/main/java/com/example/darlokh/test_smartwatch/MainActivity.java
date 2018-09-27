@@ -1,15 +1,18 @@
 package com.example.darlokh.test_smartwatch;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -32,25 +35,14 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.List;
-
 import info.metadude.java.library.overpass.models.Element;
-
-/*
-TODO:
-DONE 1. get own location to request landmarks in a radius form it
-2. transform latitude and longitudes to some sort of x-y-coordinates such that canvas can draw them
-3. write function that places the TARGETLOCATION on the border if it is not inside the visible/shown area (on the smartwatch)
-*/
 
 public class MainActivity extends AppCompatActivity {
     final String TAG = "MainActivity";
@@ -75,28 +67,33 @@ public class MainActivity extends AppCompatActivity {
     private static final long LOCATION_REFRESH_TIME =  5000;
     private static final float LOCATION_REFRESH_DISTANCE = 5;
     private LandmarkContainer lmContainer = new LandmarkContainer();
-    private Integer amountOfIcons = 10;
+    private Integer maxAmountOfIcons = 20;
+    private double viewRadiusInKilometers = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final Activity thisActivity = this;
-        builder = new PlacePicker.IntentBuilder();
         mPermissionHelper = new permissionHelper();
+        mPermissionHelper.checkPermission(thisActivity);
+        mPermissionHelper.checkGooglePlayServices(getApplicationContext(), thisActivity);
+
+        builder = new PlacePicker.IntentBuilder();
         receiver = new ResponseReceiver();
         filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
         filter.addCategory(Intent.CATEGORY_DEFAULT);
         mDataClient = Wearable.getDataClient(this);
         registerReceiver(receiver, filter);
 
-        mPermissionHelper.checkPermission(thisActivity);
-        mPermissionHelper.checkGooglePlayServices(getApplicationContext(), thisActivity);
-
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                LOCATION_REFRESH_TIME,
-                LOCATION_REFRESH_DISTANCE,
-                mLocationListener);
+        if (ContextCompat.checkSelfPermission(thisActivity,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Permission is granted
+            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    LOCATION_REFRESH_TIME,
+                    LOCATION_REFRESH_DISTANCE,
+                    mLocationListener);
+        }
 
         connectToWearable();
         initLandmarkData();
@@ -213,10 +210,7 @@ public class MainActivity extends AppCompatActivity {
             json = intent.getStringExtra(queryService.PARAM_OUT_MSG);
             Gson gson = new Gson();
             mElementList = gson.fromJson(json, List.class);
-//            System.out.println("OSM data received in mainActivity.");
-            System.out.println(intent.getStringExtra(queryService.PARAM_OUT_MSG));
             try {
-//                Log.d(TAG, "onReceive: got something" + intent.getStringExtra(queryService.PARAM_OUT_MSG));
                 jsonObject = new JSONObject("{locations:" + intent.getStringExtra(queryService.PARAM_OUT_MSG) + "}");
                 jsonArray = jsonObject.getJSONArray("locations");
             } catch (Exception e ){
@@ -242,50 +236,49 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    // do something with the data from OSM
+    // update the data from OSM with respect to the users location
     protected void updateData() {
         lmContainer.clearLmArray();
         try {
             lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
             double lonTarget = targetLocation.getCenter().longitude;
             double latTarget = targetLocation.getCenter().latitude;
+            int amountOfIcons;
+            if (jsonArray.length() < maxAmountOfIcons) {
+                amountOfIcons = jsonArray.length();
+            } else {
+                amountOfIcons = maxAmountOfIcons;
+            }
             lmContainer.setTargetLocation(new Landmark(lonTarget, latTarget, "myTarget"));
-            Log.d(TAG, "updateData: jsonArray.length()" + jsonArray.length());
             for (int i = 0; i < jsonArray.length(); i++) {
                 double lon = jsonArray.getJSONObject(i).getDouble("lon");
                 double lat = jsonArray.getJSONObject(i).getDouble("lat");
                 JSONObject jsonObjectTags = (JSONObject) jsonArray.getJSONObject(i).get("tags");
-                String tags = jsonObjectTags.getString("amenity");
-                Log.d(TAG, "updateData: " + tags);
+                String tags = "";
+                if (jsonObjectTags.has("natural")) {
+                    tags = "natural";
+                } else if (jsonObjectTags.has("historic")) {
+                    tags = "historic";
+                } else if (jsonObjectTags.has("man_made")) {
+                    tags = "man_made";
+                } else if (jsonObjectTags.has("waterway")) {
+                    tags = "waterway";
+                } else if (jsonObjectTags.has("building")) {
+                    tags = "building";
+                }
                 Landmark tmpLm = new Landmark(lon, lat, tags);
                 lmContainer.addLandmark(tmpLm);
             }
+
             lmContainer.translateLatLonIntoXY();
             lmContainer.setLandmarksIntoLocalCoords();
             lmContainer.distanceLandmarksToMyLocation();
             lmContainer.sortByDistance();
-
-            ArrayList<Double> minMaxRatioArr = lmContainer.getMinMaxCoords();
-            Log.d(TAG, "updateData minMaxRatioArr: " + minMaxRatioArr);
-
-            final double maxDist;
-            if (lmContainer.getLmArr().size() > 0) {
-                maxDist = lmContainer.getLmArr().get(lmContainer.getLmArr().size() - 1).dist;
-            } else {
-                maxDist = lmContainer.getTargetLocation().dist;
+            for (int i = lmContainer.getLmArr().size() - 1; i >= amountOfIcons; i--){
+                lmContainer.getLmArr().remove(i);
             }
-            lmContainer.setCoordsIntoCanvasResolution(maxDist);//minMaxRatioArr.get(4));
-            Log.d(TAG, "updateData: lmContainer.getLmArr().size()" + lmContainer.getLmArr().size());
-//            Log.d(TAG, "foobar: lmArr size: " + lmContainer.getLmArr().size());
-            for(int i = 0; i < lmContainer.getLmArr().size(); i++){
-                System.out.println("dist: " + lmContainer.getLmArr().get(i).dist);
-                System.out.println("x: " + lmContainer.getLmArr().get(i).x);
-                System.out.println("y: " + lmContainer.getLmArr().get(i).y);
-            }
-            System.out.println("dist target: " + lmContainer.getTargetLocation().dist);
-            System.out.println("x target: " + lmContainer.getTargetLocation().x);
-            System.out.println("y target: " + lmContainer.getTargetLocation().y);
-//            System.out.println(lmContainer.containerToJSONObject().toString());
+            lmContainer.calcFactor(viewRadiusInKilometers);
+            lmContainer.transformCoordsIntoCanvasResolution();
             putLandmarkData(lmContainer.containerToJSONObject().toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -294,11 +287,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        try {
-            unregisterReceiver(receiver);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            unregisterReceiver(receiver);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         super.onDestroy();
     }
 
@@ -315,9 +308,6 @@ public class MainActivity extends AppCompatActivity {
                 double lat = targetLocation.getCenter().latitude;
                 lmContainer.setTargetLocation(new Landmark(lon, lat, "myTarget"));
 
-//                Log.d(TAG, "onActivityResult: " + targetLocation);
-//                String toastMsg2 = String.format("Place: %s", place.getName());
-
                 Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
             }
         }
@@ -329,7 +319,6 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST);
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
             mPermissionHelper.checkGooglePlayServices(getApplicationContext(), thisActivity);
-            Log.d(TAG, "getTargetLocation: FAILED");
         }
     }
 }

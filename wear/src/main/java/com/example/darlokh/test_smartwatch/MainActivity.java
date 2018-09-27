@@ -1,7 +1,5 @@
 package com.example.darlokh.test_smartwatch;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
@@ -11,28 +9,22 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
-import android.util.Log;
-import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.google.android.gms.common.data.FreezableUtils;
-import com.google.android.gms.wearable.CapabilityClient;
 import com.google.android.gms.wearable.DataClient;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
-import com.google.android.gms.wearable.NodeClient;
 import com.google.android.gms.wearable.Wearable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends WearableActivity implements SensorEventListener, DataClient.OnDataChangedListener {
@@ -45,17 +37,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private float[] rMat = new float[9];
     private int mAzimuth = 0; //degree
 
-    private MyView circleMyView;//= new MyView(this.getApplicationContext());
+    private MyView circleMyView;
 
     private static final String LANDMARKDATA_KEY = "com.example.key.landmarkdata";
     private static final String jsonLandmarkData = "/landmarkData";
-    public static String landmarkData = "30";
+//    public static String landmarkData = "30";
     private JSONArray jsonArray;
-    public JSONObject jsonObject;
-    private String idLandmarks;
-    private String latLandmarks;
-    private String lngLandmarks;
     private String STATE_LANDMARKS = "landmarkJSONArray";
+    public JSONObject jsonObject;
+    String idLandmarks;
+    String latLandmarks;
+    String lngLandmarks;
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents){
@@ -65,9 +57,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             final String path = uri!=null ? uri.getPath() : null;
             if(jsonLandmarkData.equals(path)) {
                 final DataMap map = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
-                // read your values from map:
-                String stringExample = map.getString(LANDMARKDATA_KEY);
-                doSomething(stringExample);
+                String newData = map.getString(LANDMARKDATA_KEY);
+                prepareLandmarkData(newData);
             }
         }
     }
@@ -91,7 +82,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
 
-        Log.d("onResume", "onResume: onResume");
         mSensorManager.registerListener(this, mMagnetometer,
                 100000); // 100.000 micro seconds = 0.1 seconds
 //                SensorManager.SENSOR_DELAY_NORMAL);
@@ -101,7 +91,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     protected void onPause(){
         super.onPause();
-        Log.d("onPause", "onPause: onPause");
         mSensorManager.unregisterListener(this);
         Wearable.getDataClient(this).removeListener(this);
     }
@@ -116,7 +105,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
             SensorManager.getRotationMatrixFromVector(rMat, event.values);
             mAzimuth = (int) (Math.toDegrees(SensorManager.getOrientation(rMat, orientation)[0]) + 360) % 360;
-//            Log.d(TAG, "onSensorChanged: " + mAzimuth);
             circleMyView.setDegrees(-mAzimuth);
         } else {
             return;
@@ -126,7 +114,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d("STOP", "onStop: STOP");
     }
 
     @Override
@@ -168,16 +155,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     // amount of landmarks which will be drawn can be adjusted because the landmarks
     // are ordered by their distance to myLocation - the iteration can stop when the cap is reached
     //
-    private void doSomething(String data) {
+    private void prepareLandmarkData(String data) {
         try {
-            Log.d(TAG, "doSomething data-length: " + data);
             if (data != null) {
                 jsonArray = new JSONArray(data);
                 jsonObject = jsonArray.getJSONObject(0);
-                //get first element, find tag, x and y, make them into tagString
                 idLandmarks = jsonObject.get("tag").toString();
-                latLandmarks = jsonObject.get("x").toString();
-                lngLandmarks = jsonObject.get("y").toString();
+                lngLandmarks = jsonObject.get("x").toString();
+                latLandmarks = jsonObject.get("y").toString();
+                if (jsonObject.has("factor")) {
+                    circleMyView.setFactor((float) jsonObject.getDouble("factor"));
+                }
                 loadLandmarksData();
             }
         } catch (Exception e) {
@@ -187,7 +175,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private void loadLandmarksData(){
         try {
-            Log.d(TAG, "loadLandmarksData: jsonArray length = " + jsonArray.length());
             for (int i = 1; i < jsonArray.length(); i++) {
                 circleMyView.fillArray(jsonArray);
             }
