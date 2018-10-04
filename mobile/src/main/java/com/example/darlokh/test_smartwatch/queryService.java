@@ -3,6 +3,7 @@ package com.example.darlokh.test_smartwatch;
 import android.app.IntentService;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import java.util.List;
@@ -60,6 +61,7 @@ public class queryService extends IntentService {
             if(response.isSuccessful()){
                 Gson gson = new Gson();
 
+                Log.d(TAG, "onHandleIntent: it was successful");
                 OverpassResponse overpassResponse = response.body();
 
                 overpassResponse.elements.toArray();
@@ -70,7 +72,6 @@ public class queryService extends IntentService {
                 fail("Query failed.");
             }
             Intent broadCastIntent = new Intent();
-            // TODO: need to 'implements' Parcelable or some other interface (are those interfaces?)
 
             broadCastIntent.setAction(MainActivity.ResponseReceiver.ACTION_RESP);
             broadCastIntent.addCategory(Intent.CATEGORY_DEFAULT);

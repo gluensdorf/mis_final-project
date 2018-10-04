@@ -28,11 +28,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     wearApp project(':wear')
     implementation 'com.google.android.gms:play-services-wearable:+'
-    //    implementation 'com.google.android.gms:play-services-location:+'
     implementation 'com.google.android.gms:play-services-places:15.0.1'
-    //    implementation 'com.google.android.gms:play-services-places:10.2.0'
-    implementation 'hu.supercluster:overpasser:0.2.2'
-    implementation 'hu.supercluster:overpasser-retrofit-adapter:0.2.2'
+//    implementation 'hu.supercluster:overpasser:0.2.2'
+//    implementation 'hu.supercluster:overpasser-retrofit-adapter:0.2.2'
     implementation 'com.google.code.gson:gson:2.6.2'
     implementation 'info.metadude.java.library.overpass:overpass-library:2.0.0'
 }

@@ -35,6 +35,7 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -101,15 +102,14 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-//        final Button buttonFoo = findViewById(R.id.button);
-        final Button buttonBar = findViewById(R.id.button2);
-        final Button buttonFoobar = findViewById(R.id.button3);
+        final Button buttonPickTarget = findViewById(R.id.button1);
+        final Button buttonStartNavigation = findViewById(R.id.button2);
 
         final Intent queryIntent = new Intent(this, queryService.class);
         queryService.myLat = myCurrentLatitude;
         queryService.myLon = myCurrentLongitude;
 
-        buttonFoobar.setOnClickListener(new View.OnClickListener() {
+        buttonStartNavigation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 queryService.myLat = myCurrentLatitude;
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 startService(queryIntent);
             }
         });
-        buttonBar.setOnClickListener(new View.OnClickListener() {
+        buttonPickTarget.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getTargetLocation();
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void popToast(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
     }
 
     private final LocationListener mLocationListener = new LocationListener() {
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             myCurrentLongitude = location.getLongitude();
 
             lmContainer.setMyLocation(new Landmark(myCurrentLongitude, myCurrentLatitude, "myLocation"));
-            String msg = Double.toString(myCurrentLatitude) + ' ' + Double.toString(myCurrentLongitude);
+//            String msg = Double.toString(myCurrentLatitude) + ' ' + Double.toString(myCurrentLongitude);
 //            popToast(msg);
             updateData();
         }
@@ -215,6 +215,11 @@ public class MainActivity extends AppCompatActivity {
                 jsonArray = jsonObject.getJSONArray("locations");
             } catch (Exception e ){
                 e.printStackTrace();
+            }
+            if (jsonArray.length() == 0) {
+                popToast("No locations received.\n" +
+                        "Either OSM did not respond correctly or did not find any locations in your area.\n" +
+                        "Please try again later.");
             }
             updateData();
         }

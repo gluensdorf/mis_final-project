@@ -41,7 +41,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     private static final String LANDMARKDATA_KEY = "com.example.key.landmarkdata";
     private static final String jsonLandmarkData = "/landmarkData";
-//    public static String landmarkData = "30";
     private JSONArray jsonArray;
     private String STATE_LANDMARKS = "landmarkJSONArray";
     public JSONObject jsonObject;
@@ -66,6 +65,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setAmbientEnabled();
         circleMyView = new MyView(this);
         circleMyView.setBackgroundColor(Color.WHITE);
         setContentView(circleMyView);
@@ -142,19 +143,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-    // TODO: implementing the following pseudocode
-    // add new attribute landmarkList
-    // iterate over the JSONObject
-    // read landmark per landmark out
-    // add new landmark with their data to the landmarkList
-    // in myView iterate over landmarkList with a new function
-    // the new function reads the tag, decides which form the landmark will have by the name
-    // and uses the coordinates from the landmark in its form accordingly
-    // then it draws the landmark (this is done for every landmark)
-    //
-    // amount of landmarks which will be drawn can be adjusted because the landmarks
-    // are ordered by their distance to myLocation - the iteration can stop when the cap is reached
-    //
     private void prepareLandmarkData(String data) {
         try {
             if (data != null) {

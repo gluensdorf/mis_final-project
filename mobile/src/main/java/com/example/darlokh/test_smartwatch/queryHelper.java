@@ -19,7 +19,7 @@ import retrofit2.Response;
 import static junit.framework.Assert.fail;
 
 public class queryHelper extends MainActivity {
-    final String TAG = "TOASTBROT";
+    final String TAG = "queryHelper";
     public List<Element> elementsList;
     public static double myLat = 0;
     public static double myLon = 0;
