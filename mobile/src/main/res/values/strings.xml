@@ -3,6 +3,11 @@
     <string name="pick_target">1. Pick Target</string>
     <string name="start_navigation">2. Start navigation on watch</string>
     <string name="legend">\n
+        Phone and Watch need to be paired\n
+        Bluetooth and GPS need to be enabled\n
+        Access to the internet is required\n
+        \n
+        - red rectangle: north pointer\n
         - black circle: your location\n
         - green circle, red center: target\n
         \n

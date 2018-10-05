@@ -29,8 +29,6 @@ dependencies {
     wearApp project(':wear')
     implementation 'com.google.android.gms:play-services-wearable:+'
     implementation 'com.google.android.gms:play-services-places:15.0.1'
-//    implementation 'hu.supercluster:overpasser:0.2.2'
-//    implementation 'hu.supercluster:overpasser-retrofit-adapter:0.2.2'
     implementation 'com.google.code.gson:gson:2.6.2'
     implementation 'info.metadude.java.library.overpass:overpass-library:2.0.0'
 }

@@ -33,7 +33,7 @@ public class DataLayerListenerService extends WearableListenerService {
             if("/landmarkData".equals(path)) {
                 final DataMap map = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                 // read your values from map:
-                Log.d("DataLayerListener", "onDataChanged: " + "FOOBAR");
+//                Log.d("DataLayerListener", "onDataChanged: " + "FOOBAR");
                 String stringExample = map.getString("com.example.key.landmarkdata");
 
                 Intent dataIntent = new Intent();
